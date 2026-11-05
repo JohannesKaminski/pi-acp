@@ -1,6 +1,6 @@
 // Smoke: session/load restores a session created by a previous adapter process.
 // Asserts the current LoadSessionResponse contract (object with configOptions,
-// models, modes, _meta) and history replay as session/update notifications.
+// models, _meta) and history replay as session/update notifications.
 import { SmokeHarness, assert } from './lib/acp-smoke.mjs'
 
 let sessionId
@@ -38,9 +38,10 @@ try {
     { timeoutMs: 60_000 }
   )
   assert(loaded !== null && typeof loaded === 'object', 'session/load returned a non-object result')
-  for (const key of ['configOptions', 'models', 'modes']) {
+  for (const key of ['configOptions', 'models']) {
     assert(key in loaded, `session/load result missing ${key}`)
   }
+  assert(loaded.modes === undefined, 'session/load must not send thinking levels as modes')
   assert(
     loaded._meta?.piAcp?.startupInfo == null,
     `expected null startupInfo on headless load, got ${JSON.stringify(loaded._meta?.piAcp?.startupInfo)}`
