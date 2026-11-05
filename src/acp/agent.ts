@@ -289,7 +289,7 @@ export class PiAcpAgent implements ACPAgent {
 
       // MCP bridge: connect client-provided ACP or stdio MCP servers and
       // prepare the pi subprocess to expose their tools (best effort; failures
-      // degrade to ordinary pi-acp-jetbrain sessions without IDE tools).
+      // degrade to ordinary pi-acp sessions without IDE tools).
       const { bridge, settings: bridgeSettings } = await this.startBridge(opts?.mcpServers ?? [], sessionId, cwd)
 
       let proc: PiRpcProcess
@@ -381,7 +381,7 @@ export class PiAcpAgent implements ACPAgent {
     return {
       protocolVersion: requested === supportedVersion ? requested : supportedVersion,
       agentInfo: {
-        name: pkg.name ?? 'pi-acp-jetbrain',
+        name: 'pi-acp',
         title: 'pi ACP adapter',
         version: pkg.version ?? '0.0.0',
         _meta: {
@@ -1138,7 +1138,7 @@ export class PiAcpAgent implements ACPAgent {
       return outcome
     } catch (error) {
       process.stderr.write(
-        `[pi-acp-jetbrain] IDE inspection failed: ${String((error as Error)?.message ?? error)}
+        `[pi-acp] IDE inspection failed: ${String((error as Error)?.message ?? error)}
 `
       )
       return null
@@ -1175,7 +1175,7 @@ export class PiAcpAgent implements ACPAgent {
       return violations
     } catch (error) {
       process.stderr.write(
-        `[pi-acp-jetbrain] IDE mutation provenance failed: ${String((error as Error)?.message ?? error)}
+        `[pi-acp] IDE mutation provenance failed: ${String((error as Error)?.message ?? error)}
 `
       )
       return null
@@ -1189,7 +1189,7 @@ export class PiAcpAgent implements ACPAgent {
     // (which can be slow when pi is mid-turn). Queue clearing is synchronous inside
     // session.cancel(); the rest runs in the background (F-018).
     void session.cancel().catch(e => {
-      process.stderr.write(`[pi-acp-jetbrain] session/cancel abort failed: ${String((e as Error)?.message ?? e)}\n`)
+      process.stderr.write(`[pi-acp] session/cancel abort failed: ${String((e as Error)?.message ?? e)}\n`)
     })
   }
   private async collectTurnUsage(session: PiAcpSession): Promise<Usage | null> {
@@ -1397,10 +1397,11 @@ export class PiAcpAgent implements ACPAgent {
     // ACP: filter by cwd if provided.
     // Zed currently sends `{}` (no cwd), so we default to the last session cwd to
     // emulate pi's `/resume` picker (project-scoped).
-    const all = listPiSessions()
-
     const effectiveCwd = (params as any).cwd ?? this.lastSessionCwd
-    const filtered = effectiveCwd ? all.filter(s => s.cwd === effectiveCwd) : all
+    const filtered = listPiSessions({
+      match: effectiveCwd ? h => h.cwd === effectiveCwd : undefined,
+      titles: false
+    })
 
     // Cursor-based pagination (opaque cursor). For MVP, we use a simple numeric offset.
     // If cursor is invalid, treat as 0.
@@ -1413,7 +1414,7 @@ export class PiAcpAgent implements ACPAgent {
     const sessions: SessionInfo[] = page.map(s => ({
       sessionId: s.sessionId,
       cwd: s.cwd,
-      title: s.title,
+      title: readPiSessionTitle(s.sessionFile),
       updatedAt: s.updatedAt
     }))
 
@@ -1649,7 +1650,7 @@ export class PiAcpAgent implements ACPAgent {
 
   async deleteSession(params: DeleteSessionRequest): Promise<DeleteSessionResponse> {
     const stored = this.store.get(params.sessionId)
-    const piSession = findPiSession(params.sessionId)
+    const piSession = stored ? null : findPiSession(params.sessionId)
 
     // Per ACP session/delete semantics, deleting a session that does not
     // exist (or is already gone) should succeed idempotently.
@@ -2065,7 +2066,7 @@ export function sanitizeBridgeDescriptors(mcpServers: NewSessionRequest['mcpServ
 function logBridgeDescriptors(mcpServers: NewSessionRequest['mcpServers'], cwd: string): void {
   try {
     process.stderr.write(
-      `[pi-acp-jetbrain] session/new mcpServers (cwd=${cwd}): ${JSON.stringify(sanitizeBridgeDescriptors(mcpServers))}\n`
+      `[pi-acp] session/new mcpServers (cwd=${cwd}): ${JSON.stringify(sanitizeBridgeDescriptors(mcpServers))}\n`
     )
   } catch {
     // Never let debug logging break the session.
@@ -2134,7 +2135,7 @@ export function buildStartupInfo(opts: {
 
   const md: string[] = []
 
-  const buildLine = `pi-acp-jetbrain ${buildInfo.packageVersion} (build ${buildInfo.revision}${buildInfo.dirty ? ', dirty source' : ''}${buildInfo.buildTime ? ', ' + buildInfo.buildTime : ''})`
+  const buildLine = `pi-acp ${buildInfo.packageVersion} (build ${buildInfo.revision}${buildInfo.dirty ? ', dirty source' : ''}${buildInfo.buildTime ? ', ' + buildInfo.buildTime : ''})`
   md.push(buildLine)
   md.push('---')
   md.push('')
@@ -2354,7 +2355,7 @@ export function buildStartupInfo(opts: {
   // Hard production cap so pathological trees cannot balloon session/new
   // regardless of the per-section caps above (P2-12 audit).
   return text.length > MAX_STARTUP_MD
-    ? `${text.slice(0, MAX_STARTUP_MD)}\n… (startup info truncated by pi-acp-jetbrain)\n`
+    ? `${text.slice(0, MAX_STARTUP_MD)}\n… (startup info truncated by pi-acp)\n`
     : text
 }
 
@@ -2377,5 +2378,5 @@ function readNearestPackageJson(metaUrl: string): {
   } catch {
     // ignore
   }
-  return { name: 'pi-acp-jetbrain', version: '0.0.0' }
+  return { name: 'pi-acp', version: '0.0.0' }
 }

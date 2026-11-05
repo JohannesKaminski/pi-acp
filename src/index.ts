@@ -3,6 +3,18 @@ import { PiAcpAgent } from './acp/agent.js'
 import { createAcpDebugLog, lineTap } from './acp/debug-log.js'
 import { exitOnCrash } from './exit-on-crash.js'
 import { getPiCommand, shouldUseShellForPiCommand } from './pi-rpc/command.js'
+// `pi-acp setup`: write the IntelliJ agent entry (~/.jetbrains/acp.json). ACP clients launch the
+// adapter without arguments, so this never collides with a session.
+if (process.argv[2] === 'setup') {
+  const { runSetup } = await import('./setup.js')
+  try {
+    process.exit(runSetup(process.argv.slice(3)))
+  } catch (e) {
+    process.stderr.write(`pi-acp setup: ${(e as Error).message}\n`)
+    process.exit(1)
+  }
+}
+
 // Terminal Auth entrypoint. The ACP client launches the agent with `--terminal-login`.
 if (process.argv.includes('--terminal-login')) {
   const { spawnSync } = await import('node:child_process')
@@ -15,7 +27,7 @@ if (process.argv.includes('--terminal-login')) {
 
   if ((res as any).error && (res as any).error.code === 'ENOENT') {
     process.stderr.write(
-      `pi-acp-jetbrain: could not start pi (command not found: ${cmd}). Install it via \`npm install -g @earendil-works/pi-coding-agent\` or ensure \`pi\` is on your PATH.\n`
+      `pi-acp: could not start pi (command not found: ${cmd}). Install it via \`npm install -g @earendil-works/pi-coding-agent\` or ensure \`pi\` is on your PATH.\n`
     )
     process.exit(1)
   }

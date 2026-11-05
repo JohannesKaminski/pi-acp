@@ -1,6 +1,6 @@
 import { createServer, type Socket, type Server } from 'node:net'
 import { tmpdir } from 'node:os'
-import { join, dirname, basename } from 'node:path'
+import { join } from 'node:path'
 import { randomBytes, createHash } from 'node:crypto'
 import { mkdtempSync, rmSync, chmodSync } from 'node:fs'
 import {
@@ -340,5 +340,3 @@ export class McpIpcServer {
     this.#onMessage?.(msg)
   }
 }
-
-export { dirname, basename }

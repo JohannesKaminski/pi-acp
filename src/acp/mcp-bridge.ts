@@ -283,7 +283,7 @@ export class AcpMcpBridge {
         {
           protocolVersion: MCP_PROTOCOL_VERSION,
           capabilities: {},
-          clientInfo: { name: 'pi-acp-jetbrain', version: buildInfo.packageVersion }
+          clientInfo: { name: 'pi-acp', version: buildInfo.packageVersion }
         },
         this.#discoveryTimeoutMs
       ),
@@ -463,7 +463,7 @@ export class AcpMcpBridge {
               params: {
                 protocolVersion: MCP_PROTOCOL_VERSION,
                 capabilities: {},
-                clientInfo: { name: 'pi-acp-jetbrain', version: buildInfo.packageVersion }
+                clientInfo: { name: 'pi-acp', version: buildInfo.packageVersion }
               }
             }),
             this.#discoveryTimeoutMs

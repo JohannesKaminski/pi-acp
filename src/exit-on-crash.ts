@@ -13,7 +13,7 @@ export function exitOnCrash(
 ): void {
   try {
     const stack = (detail as { stack?: string } | null)?.stack
-    process.stderr.write(`pi-acp-jetbrain: ${kind}: ${stack ?? String(detail)}
+    process.stderr.write(`pi-acp: ${kind}: ${stack ?? String(detail)}
 `)
   } catch {
     // ignore; exiting anyway

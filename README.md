@@ -1,79 +1,58 @@
-# pi-acp-jetbrain
+# pi-acp
 
-[![npm version](https://img.shields.io/npm/v/pi-acp-jetbrain)](https://www.npmjs.com/package/pi-acp-jetbrain)
-[![npm downloads](https://img.shields.io/npm/dm/pi-acp-jetbrain)](https://www.npmjs.com/package/pi-acp-jetbrain)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![check](https://github.com/ryan-brosas/pi-acp-jetbrain/actions/workflows/check.yml/badge.svg)](https://github.com/ryan-brosas/pi-acp-jetbrain/actions/workflows/check.yml)
+[![check](https://github.com/JohannesKaminski/pi-acp/actions/workflows/check.yml/badge.svg)](https://github.com/JohannesKaminski/pi-acp/actions/workflows/check.yml)
 
 An Agent Client Protocol (ACP) adapter for the pi coding agent. JetBrains IntelliJ is the primary host. Other ACP clients work with partial coverage.
 
 The adapter runs as an ACP server over stdio. Each ACP session starts one `pi --mode rpc` subprocess. The adapter translates messages between the client and pi.
 
-npm package: `pi-acp-jetbrain` (see the version badge for the current release). GitHub Actions publishes each release with signed provenance over npm OIDC; no npm token is needed on CI.
+This project started as a fork of [svkozak/pi-acp](https://github.com/svkozak/pi-acp) (via ryan-brosas/pi-acp-jetbrain) and has since diverged. The original MIT copyright is retained in [LICENSE](LICENSE).
 
 ## In action
 
-![pi-acp-jetbrain serving a live session in IntelliJ](assets/pi-acp-jetbrain-demo.gif)
+![pi-acp serving a live session in IntelliJ](assets/pi-acp-jetbrain-demo.gif)
 
-![pi-acp-jetbrain session in IntelliJ](assets/pi-acp-jetbrain-ide.png)
+![pi-acp session in IntelliJ](assets/pi-acp-jetbrain-ide.png)
 
 ## Install
 
 You need Node.js 22.19 or newer and pi 1.0.0 or newer with a working model (run `pi` once in a terminal to check).
 
-The adapter loads its bundled pi extensions (IDE bridge, tool approval, file access) into every pi session it starts, so installing the adapter is enough. `pi install` additionally registers the IDE bridge as a pi package; it is optional.
+The adapter loads its bundled pi extensions (IDE bridge, tool approval, file access) into every pi session it starts, so installing the adapter is enough. `pi install` is not needed.
 
-### From npm (released versions)
-
-The shortest setup: let `npx` fetch and run a pinned release. Replace `<version>` with the current release (see the badge):
-
-```json
-"pi-acp-jetbrain": {
-  "command": "npx",
-  "args": ["-y", "pi-acp-jetbrain@<version>"],
-  "env": {}
-}
-```
-
-Or install the `pi-acp` command globally and use `"command": "pi-acp"`:
+### Quick start (from GitHub)
 
 ```bash
-npm install -g pi-acp-jetbrain
+npm install -g --allow-git=all github:JohannesKaminski/pi-acp#<tag-or-commit>
+pi-acp setup    # optional, JetBrains IDEs only
 ```
 
-The package name is `pi-acp-jetbrain`. The installed command is `pi-acp`.
+npm clones the ref, installs the build tools, and builds `dist/` through the `prepare` script. npm 12 refuses git installs unless you opt in with `--allow-git=all`; older npm versions ignore the flag. Pin a tag or commit hash: a branch name can keep an older build in npm's cache.
 
-### From GitHub (unreleased branches and tags)
+`pi-acp setup` is optional and only matters for JetBrains IDEs; other ACP clients just need `pi-acp` as the agent command. It writes the agent entry into `~/.jetbrains/acp.json` for you: the absolute path of the `node` that ran it, the adapter's `dist/index.js`, the path of `pi`, and an explicit `PATH`. Other agents and your own settings in that file (for example `idea_mcp_allowed_tools`) are kept, and the original file is saved once as `acp.json.bak`. Restart the IDE and pick `pi-acp` in the AI Chat.
 
-`npx` can install straight from a GitHub repository, without an npm release. npm clones the ref, installs the build tools, and builds `dist/` through the `prepare` script:
+Options: `--dry-run` prints the result without writing, `--name <entry>` changes the entry name, `--config <path>` targets another file. Run `pi-acp setup` again after switching node versions (nvm) or moving pi. It refuses to run from the `npx` cache, since that path can disappear.
 
-```json
-"pi-acp-jetbrain": {
-  "command": "npx",
-  "args": ["-y", "--allow-git=all", "github:<owner>/pi-acp-jetbrain#<tag-or-commit>"],
-  "env": {}
-}
-```
+The installed command is `pi-acp`.
 
-- npm 12 refuses git installs unless you opt in with `--allow-git=all`. Older npm versions ignore the flag.
-- `npx` caches by ref. A branch name can keep running an older build after new pushes; pin a tag or commit hash per version you want to test.
-
-### From a tarball (another machine, no publishing)
+### From a tarball (another machine)
 
 Pack the adapter on a machine with the repository:
 
 ```bash
 npm install
-npm pack        # writes pi-acp-jetbrain-<version>.tgz
+npm pack        # writes pi-acp-<version>.tgz
 ```
 
-Copy the tarball to the other machine and install it with pi:
+Copy the tarball to the other machine and run:
 
 ```bash
-pi install npm:/full/path/to/pi-acp-jetbrain-<version>.tgz
+npm install -g ./pi-acp-<version>.tgz
+pi-acp setup
 ```
 
-pi installs the adapter and its dependencies under `~/.pi/agent/npm/`. Point IntelliJ at that copy with `"command": "<home>/.pi/agent/npm/node_modules/.bin/pi-acp"`, written out as an absolute path (`echo ~` prints your home folder, e.g. `/home/<you>` on Linux or `/Users/<you>` on macOS). Keep the tarball where you installed it from: pi records that path. To update, copy a new tarball over it, run the same `pi install` again, and restart the IDE. `npm install -g ./pi-acp-jetbrain-<version>.tgz` works too and puts `pi-acp` on your PATH.
+The tarball can be deleted afterwards. To update, install a newer tarball and restart the IDE.
 
 The package version does not change between local builds. The startup block and `initialize` report the build revision (git commit), which tells builds apart.
 
@@ -81,9 +60,12 @@ The package version does not change between local builds. The startup block and 
 
 ```bash
 npm install     # also builds dist/
+node dist/index.js setup
 ```
 
-Use `"command": "node"` with `"args": ["/path/to/pi-acp-jetbrain/dist/index.js"]`.
+### Manual setup
+
+`pi-acp setup` is a convenience. To write the entry yourself, see the next section.
 
 ### Register the adapter in IntelliJ
 
@@ -96,7 +78,7 @@ In the AI Chat tool window, open the menu in the upper-right corner and choose *
     "use_custom_mcp": true
   },
   "agent_servers": {
-    "pi-acp-jetbrain": {
+    "pi-acp": {
       "command": "/path/to/pi-acp",
       "args": [],
       "env": { "PATH": "/folder/of/node:/folder/of/pi:/usr/local/bin:/usr/bin:/bin" }
@@ -117,8 +99,8 @@ A development profile with a conservative IDE tool subset:
 ```json
 {
   "agent_servers": {
-    "pi-acp-jetbrain": {
-      "command": "/path/to/pi-acp-jetbrain/dist/index.js",
+    "pi-acp": {
+      "command": "/path/to/pi-acp/dist/index.js",
       "args": [],
       "env": {
         "PI_ACP_PI_COMMAND": "/path/to/pi",
@@ -269,7 +251,7 @@ Set the variable for the adapter process, for example in `~/.jetbrains/acp.json`
 ```json
 {
   "agent_servers": {
-    "pi-acp-jetbrain": {
+    "pi-acp": {
       "command": "/path/to/pi-acp/dist/index.js",
       "env": { "PI_ACP_IDE_MODE": "prefer", "PI_ACP_PI_COMMAND": "/path/to/pi" }
     }
@@ -318,22 +300,6 @@ Tests:
 To see what a client actually sends, set `PI_ACP_DEBUG_ACP=1` and read `~/.pi/pi-acp/acp-debug.log`.
 
 CI: `check.yml` runs the canonical check, tests, lint, typecheck, build, and the packaging check on Linux (Node 22 and 24) and Windows (Node 24). `qodana_code_quality.yml` runs a Qodana Cloud scan and needs a `QODANA_TOKEN` repository secret.
-
-## Releasing
-
-Each release publishes to npm from GitHub Actions with signed provenance. No interactive npm 2FA on CI.
-
-Start a release with:
-
-```bash
-gh workflow run Release -f version=<next-version>
-```
-
-Workflow `Release` (file `release.yml`) validates the version, bumps the package files, runs the gates, commits, tags, pushes, publishes, and creates a GitHub release.
-
-Workflow `Publish Package` (file `npm-publish.yml`) runs on a `v*` tag push. It verifies the tag matches the package version and that npm lacks the version. Then it publishes and creates a GitHub release.
-
-One-time setup for the package owner: on npmjs.com open the package Settings and the GitHub Cloud CI/CD form. Authorize `ryan-brosas/pi-acp-jetbrain`, branch `main`, with workflow filenames `npm-publish.yml` and `release.yml`.
 
 ## Limitations
 

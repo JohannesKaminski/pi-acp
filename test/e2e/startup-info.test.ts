@@ -23,7 +23,7 @@ test('e2e: the startup block follows pi quietStartup, including pi 1.0\'s "heade
 
   // pi 1.0: "header" keeps the version header and hides the resource listing.
   const header = await startupInfo('header')
-  assert.match(header, /pi-acp-jetbrain .*\(build /)
+  assert.match(header, /pi-acp .*\(build /)
   assert.match(header, /pi v\d+\.\d+\.\d+/)
   assert.doesNotMatch(header, /## (Extensions|Skills|Prompts|Context)/)
 

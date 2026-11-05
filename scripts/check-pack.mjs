@@ -35,8 +35,8 @@ try {
 
   const pkgDir =
     process.platform === 'win32'
-      ? join(prefix, 'node_modules', 'pi-acp-jetbrain')
-      : join(prefix, 'lib', 'node_modules', 'pi-acp-jetbrain')
+      ? join(prefix, 'node_modules', 'pi-acp')
+      : join(prefix, 'lib', 'node_modules', 'pi-acp')
   // Every built entry (adapter and bundled pi extensions) must be in the installed package.
   const extensions = readdirSync(join(root, 'dist', 'pi-extension')).filter(name => name.endsWith('.js'))
   for (const file of ['dist/index.js', ...extensions.map(name => `dist/pi-extension/${name}`)]) {

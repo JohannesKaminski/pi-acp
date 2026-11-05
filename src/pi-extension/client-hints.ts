@@ -1,5 +1,5 @@
 /**
- * Bundled pi extension for ACP client hints (pi-acp-jetbrain).
+ * Bundled pi extension for ACP client hints (pi-acp).
  *
  * Tells the model about client abilities that change how it should write, such as the
  * client rendering Mermaid diagrams. The adapter derives the hints from the client's

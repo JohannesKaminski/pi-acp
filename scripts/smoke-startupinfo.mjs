@@ -5,7 +5,7 @@ import { SmokeHarness, assert, matches } from './lib/acp-smoke.mjs'
 const h = new SmokeHarness().start()
 try {
   const init = await h.expectResult(1, 'initialize', { protocolVersion: 1 })
-  assert(init?.agentInfo?.name === 'pi-acp-jetbrain', `unexpected agent name: ${init?.agentInfo?.name}`)
+  assert(init?.agentInfo?.name === 'pi-acp', `unexpected agent name: ${init?.agentInfo?.name}`)
   const build = init?.agentInfo?._meta?.piAcp?.build
   assert(
     build && typeof build.revision === 'string' && build.revision.length > 0,

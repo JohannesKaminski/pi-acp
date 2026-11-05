@@ -1,5 +1,5 @@
 /**
- * Bundled pi extension for the ACP MCP bridge (pi-acp-jetbrain).
+ * Bundled pi extension for the ACP MCP bridge (pi-acp).
  *
  * The extension receives an immutable, session-scoped catalog over authenticated
  * IPC, registers each remote tool independently, acknowledges registration, and
@@ -407,7 +407,7 @@ export function mcpResultToPiResult(value: unknown): PiMcpToolResult {
   return { content, details }
 }
 
-const BRIDGE_INSTANCE_KEY = Symbol.for('pi-acp-jetbrain.acp-mcp-bridge.instance')
+const BRIDGE_INSTANCE_KEY = Symbol.for('pi-acp.acp-mcp-bridge.instance')
 
 export function claimBridgeInstance(scope: object, owner: symbol): boolean {
   const registry = scope as Record<PropertyKey, unknown>

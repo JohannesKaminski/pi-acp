@@ -6,7 +6,7 @@ describe('dogfood IDE process detection', () => {
   it('recognizes checkout and installed adapter commands', () => {
     assert.equal(isAdapterProcessArgs('node /work/pi-acp/dist/index.js'), true)
     assert.equal(isAdapterProcessArgs('/usr/local/bin/pi-acp'), true)
-    assert.equal(isAdapterProcessArgs('npx pi-acp-jetbrain'), true)
+    assert.equal(isAdapterProcessArgs('npx pi-acp'), true)
   })
 
   it('ignores unrelated commands located inside a pi-acp checkout', () => {

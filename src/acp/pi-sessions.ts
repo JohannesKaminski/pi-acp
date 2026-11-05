@@ -279,7 +279,13 @@ export function readPiSessionTitle(path: string, tail?: string): string | null {
   }
 }
 
-export function listPiSessions(): PiSessionListItem[] {
+/**
+ * `match` runs on the cheap first-line header, before any tail or title is read. `titles: false`
+ * skips titles, which can mean reading whole files; callers then read titles for the rows they show.
+ */
+export function listPiSessions(
+  opts: { match?: (header: { sessionId: string; cwd: string }) => boolean; titles?: boolean } = {}
+): PiSessionListItem[] {
   const sessionsDir = getPiSessionsDir()
   const files: string[] = []
   walkJsonlFiles(sessionsDir, files)
@@ -291,13 +297,14 @@ export function listPiSessions(): PiSessionListItem[] {
     if (!first) continue
     const header = parseSessionHeader(first)
     if (!header) continue
+    if (opts.match && !opts.match(header)) continue
 
     let updatedAt: string | null = null
 
     let title: string | null = null
     try {
       const tail = readTail(file)
-      title = readPiSessionTitle(file, tail)
+      if (opts.titles !== false) title = readPiSessionTitle(file, tail)
       updatedAt = pickUpdatedAtFromTail(tail)
     } catch {
       // ignore
@@ -332,6 +339,5 @@ export function listPiSessions(): PiSessionListItem[] {
 }
 
 export function findPiSession(sessionId: string): PiSessionListItem | null {
-  const all = listPiSessions()
-  return all.find(s => s.sessionId === sessionId) ?? null
+  return listPiSessions({ match: h => h.sessionId === sessionId, titles: false })[0] ?? null
 }

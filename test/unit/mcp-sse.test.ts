@@ -86,6 +86,21 @@ describe('SseMcpClient', () => {
     }
   })
 
+  it('keeps an event whole when its CRLF is split across two chunks', async () => {
+    const fake = await createFakeSseServer({ crlf: true, splitCrlf: true })
+    try {
+      const client = await SseMcpClient.start(fake.port)
+      try {
+        const list = (await client.request('tools/list', {}, 5_000)) as any
+        assert.equal(list.tools[0].name, 'open_file_in_editor')
+      } finally {
+        await client.close()
+      }
+    } finally {
+      await fake.close()
+    }
+  })
+
   it('parses CRLF-framed SSE streams (IntelliJ sends CRLF)', async () => {
     const fake = await createFakeSseServer({ crlf: true })
     try {

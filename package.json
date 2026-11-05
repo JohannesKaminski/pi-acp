@@ -1,21 +1,21 @@
 {
-  "name": "pi-acp-jetbrain",
+  "name": "pi-acp",
   "version": "0.0.40",
   "description": "ACP adapter for the pi coding agent (JetBrains IDEs primary host)",
   "license": "MIT",
-  "author": "Sergii Kozak <svkozak@gmail.com>",
+  "author": "Johannes Kaminski <johannes.kaminski@protonmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ryan-brosas/pi-acp-jetbrain.git"
+    "url": "git+https://github.com/JohannesKaminski/pi-acp.git"
   },
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
   "bugs": {
-    "url": "https://github.com/ryan-brosas/pi-acp-jetbrain/issues"
+    "url": "https://github.com/JohannesKaminski/pi-acp/issues"
   },
-  "homepage": "https://github.com/ryan-brosas/pi-acp-jetbrain#readme",
+  "homepage": "https://github.com/JohannesKaminski/pi-acp#readme",
   "keywords": [
     "pi-package",
     "acp",
@@ -85,5 +85,8 @@
     "typebox": "^1.3.8",
     "typescript": "^5.6.0",
     "typescript-eslint": "^8.18.0"
-  }
+  },
+  "contributors": [
+    "Sergii Kozak <svkozak@gmail.com> (original pi-acp)"
+  ]
 }

@@ -16,6 +16,8 @@ export type FakeSseOptions = {
   dropEndpointEvent?: boolean
   neverRespondCalls?: boolean
   crlf?: boolean
+  /** With crlf: send the endpoint event in two chunks split between \r and \n. */
+  splitCrlf?: boolean
   authToken?: string
 }
 
@@ -85,9 +87,13 @@ export function createFakeSseServer(options: FakeSseOptions = {}): Promise<FakeS
         if (index >= 0) state.sseConnections.splice(index, 1)
       })
       const sendEndpoint = () => {
-        if (!options.dropEndpointEvent) {
-          response.write(`event: endpoint${eol}data: /message?sessionId=fake-session${eol}${eol}`)
-        }
+        if (options.dropEndpointEvent) return
+        const event = `event: endpoint${eol}data: /message?sessionId=fake-session${eol}${eol}`
+        if (!options.splitCrlf) return void response.write(event)
+        // Split right after the first \r so its \n arrives in a separate chunk.
+        const cut = event.indexOf('\r') + 1
+        response.write(event.slice(0, cut))
+        setTimeout(() => response.write(event.slice(cut)), 50)
       }
       if (options.endpointDelayMs) setTimeout(sendEndpoint, options.endpointDelayMs)
       else sendEndpoint()

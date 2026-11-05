@@ -16,19 +16,6 @@ export class PiRpcSpawnError extends Error {
   }
 }
 
-const ESC = String.fromCharCode(0x1b)
-const CSI = String.fromCharCode(0x9b)
-
-const ANSI_ESCAPE_REGEX = new RegExp(
-  `[${ESC}${CSI}][[\\]()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]`,
-  'g'
-)
-
-function stripAnsi(s: string): string {
-  // Basic ANSI escape stripping (colors, cursor movement, etc.)
-  return s.replace(ANSI_ESCAPE_REGEX, '')
-}
-
 type PiRpcCommand =
   | { type: 'prompt'; id?: string; message: string; images?: unknown[] }
   | { type: 'abort'; id?: string }
@@ -121,7 +108,6 @@ export class PiRpcProcess {
   private readonly requestTimeoutMs: number
   private readonly exitPromise: Promise<void>
   private eventHandlers: Array<(ev: PiRpcEvent) => void> = []
-  private readonly preludeLines: string[] = []
   private readonly stderrTail: string[] = []
   private exitStatus: { code: number | null; signal: NodeJS.Signals | null } | null = null
   private readonly exitHandlers: Array<(code: number | null, signal: NodeJS.Signals | null) => void> = []
@@ -151,10 +137,7 @@ export class PiRpcProcess {
       try {
         msg = JSON.parse(line)
       } catch {
-        // pi may emit a human-readable prelude on stdout before NDJSON starts.
-        // Capture it so the ACP adapter can surface it on session start.
-        const cleaned = stripAnsi(String(line)).trimEnd()
-        if (cleaned) this.preludeLines.push(cleaned)
+        // pi may emit a human-readable prelude on stdout before NDJSON starts; it is not protocol.
         return
       }
 

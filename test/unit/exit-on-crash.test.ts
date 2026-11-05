@@ -51,7 +51,7 @@ describe('exitOnCrash', () => {
     try {
       const error = new Error('boom')
       exitOnCrash('uncaught exception', error, null, () => {}, 10)
-      assert.ok(chunks[0].includes('pi-acp-jetbrain: uncaught exception'))
+      assert.ok(chunks[0].includes('pi-acp: uncaught exception'))
       assert.ok(chunks[0].includes('boom'))
       assert.ok(chunks[0].includes('exit-on-crash.test'))
     } finally {

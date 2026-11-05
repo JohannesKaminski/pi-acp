@@ -248,13 +248,17 @@ export class SseMcpClient {
       this.#handleMessage(message)
     }
     let streamFailure: unknown
+    let heldCr = ''
     try {
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        // The SSE spec permits CRLF, LF, or CR line endings; IntelliJ sends CRLF.
-        buffer = buffer.replace(/\r\n|\r/g, '\n')
+        // The SSE spec permits CRLF, LF, or CR line endings; IntelliJ sends CRLF. Normalize only the
+        // new text, and hold a trailing \r back: its \n may arrive in the next chunk.
+        let text = heldCr + decoder.decode(value, { stream: true })
+        heldCr = text.endsWith('\r') ? '\r' : ''
+        if (heldCr) text = text.slice(0, -1)
+        buffer += text.replace(/\r\n?/g, '\n')
         let boundary = buffer.indexOf('\n\n')
         while (boundary >= 0) {
           handle(buffer.slice(0, boundary))

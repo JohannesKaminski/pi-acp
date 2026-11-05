@@ -1,5 +1,5 @@
 /**
- * Bundled pi extension for ACP tool approval (pi-acp-jetbrain).
+ * Bundled pi extension for ACP tool approval (pi-acp).
  *
  * pi has no approval step of its own. The adapter loads this extension into every pi
  * process and sets its mode with an internal command; with approval off (the default)
@@ -61,7 +61,7 @@ export default function toolApprovalExtension(pi: ExtensionAPI): void {
   const alwaysAllowed = new Set<string>()
 
   pi.registerCommand(TOOL_APPROVAL_COMMAND, {
-    description: 'pi-acp-jetbrain internal: set the tool approval mode (off | edits | all)',
+    description: 'pi-acp internal: set the tool approval mode (off | edits | all)',
     handler: async args => {
       mode = parseToolApprovalMode(args) ?? mode
     }
