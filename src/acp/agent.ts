@@ -41,7 +41,7 @@ import { SessionStore } from './session-store.js'
 import { buildInfo } from '../build-info.js'
 import { PiRpcProcess } from '../pi-rpc/process.js'
 import { getPiCommand } from '../pi-rpc/command.js'
-import { listPiSessions, findPiSession } from './pi-sessions.js'
+import { listPiSessions, findPiSession, readPiSessionTitle } from './pi-sessions.js'
 import { normalizePiAssistantText, normalizePiMessageText } from './translate/pi-messages.js'
 import { sessionStatsToAcpUsage } from './usage.js'
 import { piModelsToProviderInfo } from './providers.js'
@@ -62,7 +62,7 @@ import {
   bashTerminalOutputMeta,
   isBashTool
 } from './translate/bash.js'
-import { promptToPiMessage } from './translate/prompt.js'
+import { promptToPiMessage, promptToSessionTitle } from './translate/prompt.js'
 import { loadSlashCommands, parseCommandArgs, toAvailableCommands, withFileCommandInputs } from './slash-commands.js'
 import { getAgentDir, getEnableSkillCommands, getQuietStartup, getQuietStartupMode } from './pi-settings.js'
 import { toAvailableCommandsFromPiGetCommands } from './pi-commands.js'
@@ -328,6 +328,9 @@ export class PiAcpAgent implements ACPAgent {
 
       this.lastSessionCwd = cwd
       this.store.upsert({ sessionId, cwd, sessionFile: stored.sessionFile })
+
+      const title = readPiSessionTitle(stored.sessionFile)
+      if (title) await session.publishTitle(title, null)
 
       return session
     })()
@@ -721,7 +724,7 @@ export class PiAcpAgent implements ACPAgent {
         }
 
         try {
-          await session.proc.setSessionName(name)
+          await session.setSessionName(name)
         } catch (e: unknown) {
           const msg = String(e instanceof Error ? e.message : e)
           const hint = /set_session_name/i.test(msg)
@@ -737,15 +740,6 @@ export class PiAcpAgent implements ACPAgent {
           })
           return { stopReason: 'end_turn' }
         }
-
-        await this.sendUpdate({
-          sessionId: session.sessionId,
-          update: {
-            sessionUpdate: 'session_info_update',
-            title: name,
-            updatedAt: new Date().toISOString()
-          }
-        })
 
         await this.sendUpdate({
           sessionId: session.sessionId,
@@ -1083,7 +1077,7 @@ export class PiAcpAgent implements ACPAgent {
     }
 
     const ideMutationsBefore = new Set<string>(session.mcpBridge?.appliedMutationPaths ?? [])
-    const result = await session.prompt(message, images)
+    const result = await session.prompt(message, images, promptToSessionTitle(params.prompt) ?? undefined)
 
     // UNSTABLE ACP PromptResponse.usage: report cumulative session tokens after the
     // turn settles (best effort; a slow or absent pi stats call omits the field).
