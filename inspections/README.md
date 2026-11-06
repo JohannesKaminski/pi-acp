@@ -22,10 +22,7 @@ gate (`src/acp/ide-inspection.ts`) via the bridge `run_inspection_kts` tool.
   each finding with `inspection.registerProblem(element, "message")`.
 - Register the inspection at `HighlightDisplayLevel.WARNING`.
 - Per-file rules only: `localInspection` sees one file per run. Project-wide
-  rules need `globalInspection` and a full Qodana analysis (out of scope for
-  the gate).
-- The `id` in `InspectionKts(...)` is referenced from `qodana.yaml` when these
-  scripts are later run by Qodana in CI.
+  rules need `globalInspection`, which the gate does not run.
 
 ## Testing a script
 
