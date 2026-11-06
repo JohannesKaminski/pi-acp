@@ -30,7 +30,9 @@ npm install -g https://github.com/JohannesKaminski/pidea/releases/download/v0.1.
 pidea setup    # optional, JetBrains IDEs only
 ```
 
-The tarball is prebuilt: the install needs no git, no build tools, and runs no install scripts. To update, install a newer release the same way and restart the IDE.
+The tarball is prebuilt: the install needs no git, no build tools, and runs no install scripts.
+
+To update, run `pidea update` and restart the IDE. It installs the latest release into the same global npm folder, so `pidea setup` does not need to run again. `pidea update --check` only reports the installed and latest versions.
 
 If `npm install -g` fails with `EACCES` or asks for sudo, your Node.js was installed system-wide. Don't use sudo; either install Node.js with a version manager such as nvm (recommended), or point npm's global prefix at your home folder (not on Windows): `npm config set prefix ~/.local` and add `~/.local/bin` to your `PATH`. See npm's guide on [resolving EACCES permissions errors](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally).
 

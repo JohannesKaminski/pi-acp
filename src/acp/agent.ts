@@ -41,6 +41,7 @@ import { SessionStore } from './session-store.js'
 import { buildInfo } from '../build-info.js'
 import { PiRpcProcess } from '../pi-rpc/process.js'
 import { getPiCommand } from '../pi-rpc/command.js'
+import { compareSemver, isSemver } from '../semver.js'
 import { listPiSessions, findPiSession, readPiSessionTitle } from './pi-sessions.js'
 import { normalizePiAssistantText, normalizePiMessageText } from './translate/pi-messages.js'
 import { sessionStatsToAcpUsage } from './usage.js'
@@ -1976,29 +1977,6 @@ async function setSessionModel(proc: PiRpcProcess, requestedModelId: string): Pr
   }
 
   await proc.setModel(provider, modelId)
-}
-
-function isSemver(v: string): boolean {
-  return /^\d+\.\d+\.\d+(?:[-+].+)?$/.test(v)
-}
-
-function compareSemver(a: string, b: string): number {
-  // Very small comparator for x.y.z (ignores pre-release/build beyond making them "not greater" unless base differs)
-  const pa = a
-    .split(/[.-]/)
-    .slice(0, 3)
-    .map(n => Number(n))
-  const pb = b
-    .split(/[.-]/)
-    .slice(0, 3)
-    .map(n => Number(n))
-  for (let i = 0; i < 3; i++) {
-    const da = pa[i] ?? 0
-    const db = pb[i] ?? 0
-    if (da > db) return 1
-    if (da < db) return -1
-  }
-  return 0
 }
 
 function buildUpdateNotice(): string | null {

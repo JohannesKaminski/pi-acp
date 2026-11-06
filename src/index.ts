@@ -15,6 +15,12 @@ if (process.argv[2] === 'setup') {
   }
 }
 
+// `pidea update [--check]`: install the latest GitHub release into the same global prefix.
+if (process.argv[2] === 'update') {
+  const { defaultUpdateDeps, runUpdate } = await import('./update.js')
+  process.exit(await runUpdate(process.argv.slice(3), defaultUpdateDeps()))
+}
+
 // Terminal Auth entrypoint. The ACP client launches the agent with `--terminal-login`.
 if (process.argv.includes('--terminal-login')) {
   const { spawnSync } = await import('node:child_process')
