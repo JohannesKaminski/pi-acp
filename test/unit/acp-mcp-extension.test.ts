@@ -395,64 +395,6 @@ describe('IntelliJ-first coding mode policy', () => {
     assert.equal(result.content[0].text, 'ok')
   })
 
-  it('blocks direct Fabric file mutations while IntelliJ-first mode is active', async () => {
-    const { rt, emitCatalog } = wireExtension('required', FULL_CATALOG)
-    emitCatalog()
-    const gate = rt.handlers.get('tool_call')?.[0]
-    assert.ok(gate, 'tool_call gate registered')
-
-    for (const code of [
-      'await schema.commit({ operations: [] })',
-      "await pi.write({ path: 'src/a.ts', text: 'x' })",
-      "await pi.edit({ path: 'src/a.ts', old: 'a', new: 'b' })"
-    ]) {
-      const result = await gate({ toolName: 'fabric_exec', input: { code } }, { hasUI: false })
-      assert.equal(result?.block, true)
-      assert.match(result?.reason ?? '', /IntelliJ.*mutation/i)
-    }
-
-    const ideCall = await gate(
-      {
-        toolName: 'fabric_exec',
-        input: { code: "await extensions.ide_idea_apply_patch({ patch: '...', projectPath: '/workspace/project' })" }
-      },
-      { hasUI: false }
-    )
-    assert.equal(ideCall, undefined)
-  })
-  it('blocks direct Fabric mutations in prefer mode and lets read-only code pass', async () => {
-    for (const mode of ['required', 'prefer']) {
-      const { rt, emitCatalog } = wireExtension(mode, FULL_CATALOG)
-      emitCatalog()
-      const gate = rt.handlers.get('tool_call')?.[0]
-      assert.ok(gate, `tool_call gate registered in ${mode}`)
-      const blocked = await gate(
-        { toolName: 'fabric_exec', input: { code: "await pi.write({ path: 'x.ts', text: 'x' })" } },
-        { hasUI: false }
-      )
-      assert.equal(blocked?.block, true, `${mode} should block pi.write`)
-      const allowed = await gate(
-        {
-          toolName: 'fabric_exec',
-          input: { code: "await pi.read('/x'); await extensions.ide_idea_lint_files({ files: [] })" }
-        },
-        { hasUI: false }
-      )
-      assert.equal(allowed, undefined, `${mode} should allow read-only fabric code`)
-    }
-  })
-
-  it('blocks direct Fabric mutations before the catalog arrives in required', async () => {
-    const { rt } = wireExtension('required', FULL_CATALOG)
-    const gate = rt.handlers.get('tool_call')?.[0]
-    assert.ok(gate, 'tool_call gate registered pre-catalog')
-    const blocked = await gate(
-      { toolName: 'fabric_exec', input: { code: "await pi.write({ path: 'x.ts', text: 'x' })" } },
-      { hasUI: false }
-    )
-    assert.equal(blocked?.block, true)
-  })
-
   it('reports applied mutation paths to the adapter after a successful IDE mutation', async () => {
     const { rt, socket, emitCatalog } = wireExtension('prefer', FULL_CATALOG)
     emitCatalog()
@@ -469,10 +411,12 @@ describe('IntelliJ-first coding mode policy', () => {
     assert.deepEqual(applied.paths, ['src/a.ts'])
   })
 
-  it('does not register the mutation gate when IntelliJ-first mode is off', async () => {
-    const { rt, emitCatalog } = wireExtension('off', FULL_CATALOG)
-    emitCatalog()
-    assert.equal(rt.handlers.get('tool_call')?.length ?? 0, 0)
+  it('does not intercept tool calls in any IntelliJ-first mode', async () => {
+    for (const mode of ['off', 'prefer', 'required']) {
+      const { rt, emitCatalog } = wireExtension(mode, FULL_CATALOG)
+      emitCatalog()
+      assert.equal(rt.handlers.get('tool_call')?.length ?? 0, 0, mode)
+    }
   })
 
   it('prefer removes native file tools only when the catalog is complete', async () => {
@@ -567,6 +511,7 @@ describe('IntelliJ-first coding mode policy', () => {
     assert.match(guidance.systemPrompt, /ide_idea_apply_patch/)
     assert.match(guidance.systemPrompt, /ide_idea_lint_files/)
     assert.ok(!guidance.systemPrompt.includes('ide_idea_nonexistent'))
+    assert.doesNotMatch(guidance.systemPrompt, /Fabric/)
   })
 
   it('guidance reflects fallback state', async () => {
