@@ -18,7 +18,7 @@ export interface UpdateCheckDeps {
 }
 
 /** First line a command prints, without a leading "v"; rejects when it cannot run or fails. */
-function versionOutput(command: string, args: string[]): Promise<string> {
+export function versionOutput(command: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = crossSpawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
     let out = ''

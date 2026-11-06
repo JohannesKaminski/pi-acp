@@ -41,7 +41,7 @@ import { SessionStore } from './session-store.js'
 import { buildInfo } from '../build-info.js'
 import { PiRpcProcess } from '../pi-rpc/process.js'
 import { getPiCommand } from '../pi-rpc/command.js'
-import { checkForUpdates, defaultUpdateCheckDeps } from '../update-check.js'
+import { checkForUpdates, defaultUpdateCheckDeps, versionOutput } from '../update-check.js'
 import { listPiSessions, findPiSession, readPiSessionTitle } from './pi-sessions.js'
 import { normalizePiAssistantText, normalizePiMessageText } from './translate/pi-messages.js'
 import { sessionStatsToAcpUsage } from './usage.js'
@@ -166,6 +166,14 @@ export class PideaAgent implements ACPAgent {
   private readonly restoringSessions = new Map<string, Promise<PideaSession>>()
   private readonly updateCheck: () => Promise<string[]>
   private updateNoticeScheduled = false
+  private readonly lookupPiVersion: () => Promise<string>
+  private piVersion?: Promise<string | undefined>
+
+  /** `pi --version` for the startup block, spawned asynchronously once per adapter process. */
+  private installedPiVersion(): Promise<string | undefined> {
+    this.piVersion ??= this.lookupPiVersion().catch(() => undefined)
+    return this.piVersion
+  }
 
   /**
    * Announce newer pidea / pi releases once per adapter process, in the first session. The
@@ -194,9 +202,14 @@ export class PideaAgent implements ACPAgent {
   // Remember recent session cwd and use it as the default filter.
   private lastSessionCwd: string | null = null
 
-  constructor(conn: AgentSideConnection, options: { updateCheck?: () => Promise<string[]> } = {}) {
+  constructor(
+    conn: AgentSideConnection,
+    options: { updateCheck?: () => Promise<string[]>; piVersion?: () => Promise<string> } = {}
+  ) {
     this.conn = conn
     this.updateCheck = options.updateCheck ?? (() => checkForUpdates(defaultUpdateCheckDeps()))
+    this.lookupPiVersion =
+      options.piVersion ?? (() => versionOutput(getPiCommand(process.env.PIDEA_PI_COMMAND), ['--version']))
     this.sessions.onConfigChanged = async session => {
       await emitConfigOptionsUpdate(this.conn, session)
     }
@@ -451,6 +464,8 @@ export class PideaAgent implements ACPAgent {
     }
 
     this.lastSessionCwd = params.cwd
+    // Started first so the spawn overlaps with starting the bridge and pi.
+    const piVersion = this.installedPiVersion()
 
     const fileCommands = loadSlashCommands(params.cwd)
     const enableSkillCommands = getEnableSkillCommands(params.cwd)
@@ -552,6 +567,7 @@ export class PideaAgent implements ACPAgent {
         ? ''
         : buildStartupInfo({
             headerOnly: quietStartup === 'header',
+            piVersion: await piVersion,
             cwd: params.cwd,
             fileCommands,
             bridgeStatus: bridge.hasServers ? bridge.status : undefined,
@@ -2090,6 +2106,8 @@ export function buildBridgeStartupInfo(opts: {
 export function buildStartupInfo(opts: {
   /** pi `quietStartup: "header"`: version header and IDE bridge problems only. */
   headerOnly?: boolean
+  /** Installed pi version for the `pi vX` line; omitted when unknown. */
+  piVersion?: string
   cwd: string
   fileCommands: ReturnType<typeof loadSlashCommands>
   bridgeDiagnostics?: string[]
@@ -2107,20 +2125,10 @@ export function buildStartupInfo(opts: {
   md.push('---')
   md.push('')
 
-  // pi version header
-  try {
-    const piVersion = crossSpawn.sync(getPiCommand(process.env.PIDEA_PI_COMMAND), ['--version'], { encoding: 'utf-8' })
-    const installed = (String(piVersion.stdout ?? '').trim() || String(piVersion.stderr ?? '').trim()).replace(
-      /^v/i,
-      ''
-    )
-    if (installed) {
-      md.push(`pi v${installed}`)
-      md.push('---')
-      md.push('')
-    }
-  } catch {
-    // ignore
+  if (opts.piVersion) {
+    md.push(`pi v${opts.piVersion}`)
+    md.push('---')
+    md.push('')
   }
 
   const addSection = (title: string, items: string[]) => {
