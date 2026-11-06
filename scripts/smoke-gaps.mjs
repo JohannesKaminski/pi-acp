@@ -71,8 +71,8 @@ try {
   const prov = await h.expectResult(7, 'providers/list', {})
   assert(Array.isArray(prov?.providers) && prov.providers.length > 0, 'providers/list empty')
   for (const p of prov.providers) {
-    assert(typeof p?.id === 'string' && p.id.length > 0, 'provider missing id')
-    assert(Array.isArray(p?.supported) && p.supported.length > 0, `provider ${p?.id} missing supported`)
+    assert(typeof p?.providerId === 'string' && p.providerId.length > 0, 'provider missing providerId')
+    assert(Array.isArray(p?.supported) && p.supported.length > 0, `provider ${p?.providerId} missing supported`)
   }
 
   // session/close: cancel + dispose; the stored session stays listable/resumable.
