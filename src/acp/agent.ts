@@ -19,8 +19,6 @@ import {
   type SetSessionConfigOptionResponse,
   type SessionNotification,
   type ToolCallContent,
-  type SetSessionModeRequest,
-  type SetSessionModeResponse,
   type DeleteSessionRequest,
   type DeleteSessionResponse,
   type ForkSessionRequest,
@@ -1727,21 +1725,6 @@ export class PideaAgent implements ACPAgent {
     await session.publishContextUsage()
   }
 
-  async setSessionMode(params: SetSessionModeRequest): Promise<SetSessionModeResponse> {
-    const session = await this.restoreSession(params.sessionId)
-
-    const mode = params.modeId
-    if (typeof mode !== 'string' || mode.length === 0) {
-      throw RequestError.invalidParams(undefined, 'Expected nonempty string modeId')
-    }
-
-    await session.proc.setThinkingLevel(mode)
-
-    await emitConfigOptionsUpdate(this.conn, session)
-
-    return {}
-  }
-
   async setSessionConfigOption(params: SetSessionConfigOptionRequest): Promise<SetSessionConfigOptionResponse> {
     const session = await this.restoreSession(params.sessionId)
     const configId = String(params.configId)
@@ -2264,8 +2247,7 @@ export function buildStartupInfo(opts: {
   pushSkillFromRoot(globalSkillsDir)
 
   // Also support ~/.agents/skills (pi skill discovery)
-  const legacyAgentsSkillsDir = join(process.env.HOME ?? '', '.agents', 'skills')
-  pushSkillFromRoot(legacyAgentsSkillsDir)
+  pushSkillFromRoot(join(process.env.HOME ?? '', '.agents', 'skills'))
 
   // Project skills (.pi/skills)
   const projectSkillsDir = join(opts.cwd, '.pi', 'skills')

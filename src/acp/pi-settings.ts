@@ -68,9 +68,7 @@ export function getEnableSkillCommands(cwd: string): boolean {
 export type QuietStartupMode = 'off' | 'header' | 'quiet'
 
 export function getQuietStartupMode(cwd: string): QuietStartupMode {
-  const merged = getMergedSettings(cwd)
-  // Back-compat: some versions used quietStart.
-  const value = merged.quietStartup ?? (merged as Record<string, unknown>).quietStart
+  const value = getMergedSettings(cwd).quietStartup
   if (value === 'header') return 'header'
   return value === true ? 'quiet' : 'off'
 }

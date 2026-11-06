@@ -22,7 +22,8 @@ test('getQuietStartupMode: maps pi quietStartup values, project settings overrid
       [{ quietStartup: true }, 'quiet', true],
       [{ quietStartup: 'header' }, 'header', true],
       [{ quietStartup: 'loud' }, 'off', false],
-      [{ quietStart: true }, 'quiet', true]
+      // pi 1.x reads only quietStartup.
+      [{ quietStart: true }, 'off', false]
     ]
     for (const [settings, mode, quiet] of cases) {
       setGlobal(settings)

@@ -33,7 +33,7 @@ At the first session of an adapter process, pidea checks in the background wheth
 
 IntelliJ applies setting changes right before the next prompt.
 
-**Thinking** is a `thought_level` config option. It is not sent as session modes, so clients show one thinking selector; `session/set_mode` still accepts a level for older clients. The model selector works through a mapping from pi models to ACP provider info. pi keeps provider credentials outside the RPC surface.
+**Thinking** is a `thought_level` config option. It is not sent as session modes, so clients show one thinking selector, and pidea does not handle `session/set_mode`. The model selector works through a mapping from pi models to ACP provider info. pi keeps provider credentials outside the RPC surface.
 
 **Tool approval.** pi has no approval step of its own. A bundled pi extension pauses each tool call that needs approval and asks the client through `session/request_permission`, attached to that tool call, with Allow, Always allow (that tool, for the rest of the session), and Reject. A rejected tool does not run. "Ask for edits & commands" lets read, grep, find, and ls run without asking.
 

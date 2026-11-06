@@ -67,42 +67,58 @@ function assertUpdates(conn: FakeAgentSideConnection, level: string, levels: str
   )
 }
 
-for (const legacy of [false, true]) {
-  for (const requested of ['max', 'xhigh', 'ordinary', ' mean ', ' ']) {
-    test(`${legacy ? 'legacy' : 'config'} reasoning setter reports actual max for ${requested}`, async () => {
-      const { agent, conn, calls } = fixture()
-      if (legacy) await agent.setSessionMode({ sessionId: 's1', modeId: requested })
-      else {
-        const result = await agent.setSessionConfigOption({
-          sessionId: 's1',
-          configId: 'thought_level',
-          value: requested
-        })
-        assert.equal(result.configOptions.find(option => option.id === 'thought_level')?.currentValue, 'max')
-      }
-      assert.deepEqual(calls, [requested])
-      assertUpdates(conn, 'max', ['low', 'high', 'max'])
+for (const requested of ['max', 'xhigh', 'ordinary', ' mean ', ' ']) {
+  test(`reasoning setter reports actual max for ${requested}`, async () => {
+    const { agent, conn, calls } = fixture()
+    const result = await agent.setSessionConfigOption({
+      sessionId: 's1',
+      configId: 'thought_level',
+      value: requested
     })
-  }
-  test(`${legacy ? 'legacy' : 'config'} reasoning setter reports an opaque applied level`, async () => {
-    const { agent, conn, proc, state, calls } = fixture()
-    proc.getAvailableThinkingLevels = async () => ['ordinary', 'mean']
-    proc.setThinkingLevel = async level => {
-      calls.push(level)
-      state.thinkingLevel = 'mean'
-    }
-    if (legacy) await agent.setSessionMode({ sessionId: 's1', modeId: 'ordinary' })
-    else {
-      const result = await agent.setSessionConfigOption({
-        sessionId: 's1',
-        configId: 'thought_level',
-        value: 'ordinary'
-      })
-      assert.equal(result.configOptions.find(option => option.id === 'thought_level')?.currentValue, 'mean')
-    }
-    assert.deepEqual(calls, ['ordinary'])
-    assertUpdates(conn, 'mean', ['ordinary', 'mean'])
+    assert.equal(result.configOptions.find(option => option.id === 'thought_level')?.currentValue, 'max')
+    assert.deepEqual(calls, [requested])
+    assertUpdates(conn, 'max', ['low', 'high', 'max'])
   })
+}
+
+test('reasoning setter reports an opaque applied level', async () => {
+  const { agent, conn, proc, state, calls } = fixture()
+  proc.getAvailableThinkingLevels = async () => ['ordinary', 'mean']
+  proc.setThinkingLevel = async level => {
+    calls.push(level)
+    state.thinkingLevel = 'mean'
+  }
+  const result = await agent.setSessionConfigOption({
+    sessionId: 's1',
+    configId: 'thought_level',
+    value: 'ordinary'
+  })
+  assert.equal(result.configOptions.find(option => option.id === 'thought_level')?.currentValue, 'mean')
+  assert.deepEqual(calls, ['ordinary'])
+  assertUpdates(conn, 'mean', ['ordinary', 'mean'])
+})
+
+for (const failure of ['state', 'discovery', 'empty', 'non-string', 'inconsistent']) {
+  test(`reasoning setter emits no success on ${failure} read failure`, async () => {
+    const { agent, conn, proc, state } = fixture()
+    if (failure === 'state')
+      proc.getState = async () => {
+        throw new Error('state failed')
+      }
+    if (failure === 'discovery')
+      proc.getAvailableThinkingLevels = async () => {
+        throw new Error('discovery failed')
+      }
+    if (failure === 'empty' || failure === 'non-string' || failure === 'inconsistent')
+      proc.setThinkingLevel = async () => {
+        Reflect.set(state, 'thinkingLevel', failure === 'empty' ? '' : failure === 'non-string' ? 1 : 'medium')
+      }
+    await assert.rejects(agent.setSessionConfigOption({ sessionId: 's1', configId: 'thought_level', value: 'max' }))
+    assert.deepEqual(conn.updates, [])
+  })
+}
+
+for (const legacy of [false, true]) {
   test(`${legacy ? 'legacy' : 'config'} model setter refreshes model-specific levels and current mode`, async () => {
     const { agent, conn } = fixture()
     for (const model of ['plain', 'reasoning']) {
@@ -112,32 +128,9 @@ for (const legacy of [false, true]) {
       assertUpdates(conn, model === 'plain' ? 'off' : 'max', model === 'plain' ? ['off'] : ['low', 'high', 'max'])
     }
   })
-  for (const failure of ['state', 'discovery', 'empty', 'non-string', 'inconsistent']) {
-    test(`${legacy ? 'legacy' : 'config'} reasoning setter emits no success on ${failure} read failure`, async () => {
-      const { agent, conn, proc, state } = fixture()
-      if (failure === 'state')
-        proc.getState = async () => {
-          throw new Error('state failed')
-        }
-      if (failure === 'discovery')
-        proc.getAvailableThinkingLevels = async () => {
-          throw new Error('discovery failed')
-        }
-      if (failure === 'empty' || failure === 'non-string' || failure === 'inconsistent')
-        proc.setThinkingLevel = async () => {
-          Reflect.set(state, 'thinkingLevel', failure === 'empty' ? '' : failure === 'non-string' ? 1 : 'medium')
-        }
-      await assert.rejects(
-        legacy
-          ? agent.setSessionMode({ sessionId: 's1', modeId: 'max' })
-          : agent.setSessionConfigOption({ sessionId: 's1', configId: 'thought_level', value: 'max' })
-      )
-      assert.deepEqual(conn.updates, [])
-    })
-  }
 }
 
-test('invalid configuration and legacy mode requests do not mutate Pi', async () => {
+test('invalid configuration requests do not mutate Pi', async () => {
   const { agent, calls, conn } = fixture()
   for (const request of [
     { configId: 'thought_level', value: '' },
@@ -148,12 +141,6 @@ test('invalid configuration and legacy mode requests do not mutate Pi', async ()
       agent.setSessionConfigOption({ sessionId: 's1', ...request } as Parameters<
         PideaAgent['setSessionConfigOption']
       >[0]),
-      { code: -32602 }
-    )
-  }
-  for (const modeId of ['', 1, null]) {
-    await assert.rejects(
-      agent.setSessionMode({ sessionId: 's1', modeId } as Parameters<PideaAgent['setSessionMode']>[0]),
       { code: -32602 }
     )
   }
