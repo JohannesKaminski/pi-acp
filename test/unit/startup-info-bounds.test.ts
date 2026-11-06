@@ -20,7 +20,7 @@ test('buildStartupInfo bounds the skill inventory and survives symlink cycles (P
     // symlinks unavailable (e.g. Windows without privileges)
   }
 
-  const info = buildStartupInfo({ cwd, fileCommands: [], updateNotice: null })
+  const info = buildStartupInfo({ cwd, fileCommands: [] })
   assert.ok(info.length > 0, 'empty startup info')
   assert.ok(info.length <= 64_000, `startup info ${info.length} exceeds the 64 KB cap`)
 })

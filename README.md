@@ -218,21 +218,21 @@ The session catalog never changes. After you edit IntelliJ MCP settings or the a
 
 ## Environment variables
 
-| Variable                               | Effect                                                                                                                                              |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PIDEA_PI_COMMAND`                     | Path to the pi executable. Default: `pi`.                                                                                                           |
-| `PIDEA_TOOL_APPROVAL=off\|edits\|all`  | Default tool approval mode for new sessions. Default: `off`.                                                                                        |
-| `PIDEA_FILE_ACCESS=disk\|editor`       | Default file access for read/edit/write in new sessions, for clients with fs support. Default: `editor`.                                            |
-| `PIDEA_DEBUG_ACP=1` or a file path     | Log incoming ACP requests and outgoing errors to `~/.pi/pidea/acp-debug.log` (or the given file). Prompt text, images, env and headers are omitted. |
-| `PIDEA_DEBUG_BRIDGE=1`                 | Log the sanitized `session/new` MCP descriptor to stderr. IntelliJ writes that stderr into `idea.log`.                                              |
-| `PIDEA_ENABLE_EMBEDDED_CONTEXT=true`   | Advertise `embeddedContext` support.                                                                                                                |
-| `PIDEA_ENFORCE_IDE_INSPECT=0`          | Disable the inspection gate that runs after each turn.                                                                                              |
-| `PIDEA_ENFORCE_IDE_MUTATIONS=0`        | Disable the mutation provenance gate. See the IntelliJ-first coding mode section.                                                                   |
-| `PIDEA_IDE_MODE=off\|prefer\|required` | IntelliJ-first coding mode for the session. Default: `off`. See the IntelliJ-first coding mode section.                                             |
-| `PIDEA_IDE_INSPECT_DIR`                | Move inspection reports out of the project tree.                                                                                                    |
-| `PIDEA_SESSION_MAP`                    | Override the session map path. Default: `~/.pi/pidea/session-map.json`.                                                                             |
-| `PIDEA_IDE_EXTRA_TOOLS`                | Re-allow deny-listed IDE tools. Comma separated remote names.                                                                                       |
-| `PIDEA_UPDATE_CHECK=0`                 | Disable update checks (the "New version available" notice for pi).                                                                                  |
+| Variable                               | Effect                                                                                                                                               |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PIDEA_PI_COMMAND`                     | Path to the pi executable. Default: `pi`.                                                                                                            |
+| `PIDEA_TOOL_APPROVAL=off\|edits\|all`  | Default tool approval mode for new sessions. Default: `off`.                                                                                         |
+| `PIDEA_FILE_ACCESS=disk\|editor`       | Default file access for read/edit/write in new sessions, for clients with fs support. Default: `editor`.                                             |
+| `PIDEA_DEBUG_ACP=1` or a file path     | Log incoming ACP requests and outgoing errors to `~/.pi/pidea/acp-debug.log` (or the given file). Prompt text, images, env and headers are omitted.  |
+| `PIDEA_DEBUG_BRIDGE=1`                 | Log the sanitized `session/new` MCP descriptor to stderr. IntelliJ writes that stderr into `idea.log`.                                               |
+| `PIDEA_ENABLE_EMBEDDED_CONTEXT=true`   | Advertise `embeddedContext` support.                                                                                                                 |
+| `PIDEA_ENFORCE_IDE_INSPECT=0`          | Disable the inspection gate that runs after each turn.                                                                                               |
+| `PIDEA_ENFORCE_IDE_MUTATIONS=0`        | Disable the mutation provenance gate. See the IntelliJ-first coding mode section.                                                                    |
+| `PIDEA_IDE_MODE=off\|prefer\|required` | IntelliJ-first coding mode for the session. Default: `off`. See the IntelliJ-first coding mode section.                                              |
+| `PIDEA_IDE_INSPECT_DIR`                | Move inspection reports out of the project tree.                                                                                                     |
+| `PIDEA_SESSION_MAP`                    | Override the session map path. Default: `~/.pi/pidea/session-map.json`.                                                                              |
+| `PIDEA_IDE_EXTRA_TOOLS`                | Re-allow deny-listed IDE tools. Comma separated remote names.                                                                                        |
+| `PIDEA_UPDATE_CHECK=0`                 | Disable the update check. Otherwise, at the first session after IDE start, a chat line announces newer pidea or pi releases (checked at most daily). |
 
 ## IntelliJ-first coding mode
 

@@ -50,7 +50,7 @@
     "format": "prettier . --write",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "node --import tsx --test test/**/*.test.ts",
+    "test": "node --import tsx --import ./test/setup.ts --test test/**/*.test.ts",
     "smoke": "npm run build && node scripts/smoke-startupinfo.mjs && node scripts/smoke-acp.mjs",
     "smoke:core": "npm run smoke",
     "smoke:sessions": "node scripts/smoke-cancel.mjs && node scripts/smoke-lifecycle.mjs && node scripts/smoke-negative.mjs",

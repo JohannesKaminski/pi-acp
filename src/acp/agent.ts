@@ -41,7 +41,7 @@ import { SessionStore } from './session-store.js'
 import { buildInfo } from '../build-info.js'
 import { PiRpcProcess } from '../pi-rpc/process.js'
 import { getPiCommand } from '../pi-rpc/command.js'
-import { compareSemver, isSemver } from '../semver.js'
+import { checkForUpdates, defaultUpdateCheckDeps } from '../update-check.js'
 import { listPiSessions, findPiSession, readPiSessionTitle } from './pi-sessions.js'
 import { normalizePiAssistantText, normalizePiMessageText } from './translate/pi-messages.js'
 import { sessionStatsToAcpUsage } from './usage.js'
@@ -164,6 +164,28 @@ export class PideaAgent implements ACPAgent {
   private readonly sessions = new SessionManager()
   private readonly store = new SessionStore()
   private readonly restoringSessions = new Map<string, Promise<PideaSession>>()
+  private readonly updateCheck: () => Promise<string[]>
+  private updateNoticeScheduled = false
+
+  /**
+   * Announce newer pidea / pi releases once per adapter process, in the first session. The
+   * check runs in the background, so session/new and session/load never wait for it.
+   */
+  private scheduleUpdateNotice(sessionId: string): void {
+    if (this.updateNoticeScheduled || process.env.PIDEA_UPDATE_CHECK === '0') return
+    this.updateNoticeScheduled = true
+    const check = this.updateCheck().catch(() => [] as string[])
+    // Deliver after the response: clients ignore updates for a sessionId they don't know yet.
+    setTimeout(() => {
+      void check.then(async lines => {
+        if (lines.length === 0) return
+        await this.sendUpdate({
+          sessionId,
+          update: { sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: lines.join('\n') + '\n' } }
+        }).catch(() => {})
+      })
+    }, 0)
+  }
 
   async dispose(): Promise<void> {
     await this.sessions.disposeAll()
@@ -172,9 +194,9 @@ export class PideaAgent implements ACPAgent {
   // Remember recent session cwd and use it as the default filter.
   private lastSessionCwd: string | null = null
 
-  constructor(conn: AgentSideConnection, _config?: unknown) {
+  constructor(conn: AgentSideConnection, options: { updateCheck?: () => Promise<string[]> } = {}) {
     this.conn = conn
-    void _config
+    this.updateCheck = options.updateCheck ?? (() => checkForUpdates(defaultUpdateCheckDeps()))
     this.sessions.onConfigChanged = async session => {
       await emitConfigOptionsUpdate(this.conn, session)
     }
@@ -522,21 +544,16 @@ export class PideaAgent implements ACPAgent {
     const configOptions = await withSessionConfigOptions(session, configuration.configOptions)
 
     const quietStartup = getQuietStartupMode(params.cwd)
-    const updateNotice = buildUpdateNotice()
 
-    // If quietStartup is enabled, suppress the full "startup info" prelude, but still surface
-    // the "New version available" notice (if any) since it's high-signal and actionable.
-    // "header" keeps the version header (and problems) without the resource listing.
+    // quietStartup suppresses the "startup info" prelude ("header" keeps the version header and
+    // problems without the resource listing). Update notices arrive separately, see scheduleUpdateNotice.
     const preludeText =
       quietStartup === 'quiet'
-        ? updateNotice
-          ? updateNotice + '\n'
-          : ''
+        ? ''
         : buildStartupInfo({
             headerOnly: quietStartup === 'header',
             cwd: params.cwd,
             fileCommands,
-            updateNotice,
             bridgeStatus: bridge.hasServers ? bridge.status : undefined,
             bridgeTools: registeredBridgeTools(bridge),
             bridgeProjectPath: bridge.projectPath,
@@ -565,6 +582,7 @@ export class PideaAgent implements ACPAgent {
     // Try to send it immediately after session/new returns; if the client ignores it,
     // it will still be emitted as the first chunk of the first prompt.
     if (preludeText) setTimeout(() => session.sendStartupInfoIfPending(), 0)
+    this.scheduleUpdateNotice(session.sessionId)
 
     // Advertise slash commands (ACP: available_commands_update)
     // Important: some clients (e.g. Zed) will ignore notifications for an unknown sessionId.
@@ -1610,6 +1628,7 @@ export class PideaAgent implements ACPAgent {
 
     // Advertise bridge status and slash commands only after the response so the client knows the session exists.
     if (restoredStartupInfo) setTimeout(() => session.sendStartupInfoIfPending(), 0)
+    this.scheduleUpdateNotice(session.sessionId)
     setTimeout(() => {
       void (async () => {
         await session.publishContextUsage()
@@ -1979,36 +1998,6 @@ async function setSessionModel(proc: PiRpcProcess, requestedModelId: string): Pr
   await proc.setModel(provider, modelId)
 }
 
-function buildUpdateNotice(): string | null {
-  // Best-effort update check against npm registry.
-  // Important: keep it fast to not slow down session/new.
-  if (process.env.PIDEA_UPDATE_CHECK === '0') return null
-  try {
-    const piVersion = crossSpawn.sync(getPiCommand(process.env.PIDEA_PI_COMMAND), ['--version'], { encoding: 'utf-8' })
-    const installed = (String(piVersion.stdout ?? '').trim() || String(piVersion.stderr ?? '').trim()).replace(
-      /^v/i,
-      ''
-    )
-
-    if (!installed || !isSemver(installed)) return null
-
-    const latestRes = crossSpawn.sync('npm', ['view', '@earendil-works/pi-coding-agent', 'version'], {
-      encoding: 'utf-8',
-      timeout: 800
-    })
-    const latest = String(latestRes.stdout ?? '')
-      .trim()
-      .replace(/^v/i, '')
-
-    if (!latest || !isSemver(latest)) return null
-    if (compareSemver(latest, installed) <= 0) return null
-
-    return `New version available: v${latest} (installed v${installed}). Run: \`npm i -g @earendil-works/pi-coding-agent\``
-  } catch {
-    return null
-  }
-}
-
 /**
  * Debug-only stderr dump of the raw session/new mcpServers descriptor.
  * IntelliJ pipes the adapter's stderr into idea.log, so a fresh chat with
@@ -2099,11 +2088,10 @@ export function buildBridgeStartupInfo(opts: {
 }
 
 export function buildStartupInfo(opts: {
-  /** pi `quietStartup: "header"`: version header, IDE bridge problems and update notice only. */
+  /** pi `quietStartup: "header"`: version header and IDE bridge problems only. */
   headerOnly?: boolean
   cwd: string
   fileCommands: ReturnType<typeof loadSlashCommands>
-  updateNotice: string | null
   bridgeDiagnostics?: string[]
   bridgeStatus?: import('./mcp-types.js').BridgeStatus
   bridgeTools?: BridgeTool[]
@@ -2322,12 +2310,6 @@ export function buildStartupInfo(opts: {
   }
 
   addSection('Extensions', extItems)
-
-  if (opts.updateNotice) {
-    md.push('---')
-    md.push(opts.updateNotice)
-    md.push('')
-  }
 
   // Do NOT include themes (per request).
   const text = md.join('\n').trim() + '\n'

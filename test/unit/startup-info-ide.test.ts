@@ -6,7 +6,6 @@ test('buildStartupInfo gives semantic-first JetBrains IDE guidance', () => {
   const startupInfo = buildStartupInfo({
     cwd: '/workspace/project',
     fileCommands: [],
-    updateNotice: null,
     bridgeTools: [
       {
         exposedName: 'ide_intellij_search_symbol',
