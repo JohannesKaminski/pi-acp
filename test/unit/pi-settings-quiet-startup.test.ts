@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { getQuietStartup, getQuietStartupMode } from '../../src/acp/pi-settings.js'
 
 test('getQuietStartupMode: maps pi quietStartup values, project settings override global', () => {
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp-quiet-'))
+  const root = mkdtempSync(join(tmpdir(), 'pidea-quiet-'))
   const prev = process.env.PI_CODING_AGENT_DIR
   try {
     const agentDir = join(root, 'agent')

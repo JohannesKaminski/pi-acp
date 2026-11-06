@@ -34,7 +34,7 @@ import {
   type Usage
 } from '@agentclientprotocol/sdk'
 import { getAuthMethods } from './auth.js'
-import { SessionManager, type PiAcpSession } from './session.js'
+import { SessionManager, type PideaSession } from './session.js'
 import { AcpMcpBridge } from './mcp-bridge.js'
 import type { BridgeSpawnSettings, BridgeTool } from './mcp-types.js'
 import { SessionStore } from './session-store.js'
@@ -158,11 +158,11 @@ import { fileURLToPath } from 'node:url'
 
 const pkg = readNearestPackageJson(import.meta.url)
 
-export class PiAcpAgent implements ACPAgent {
+export class PideaAgent implements ACPAgent {
   private readonly conn: AgentSideConnection
   private readonly sessions = new SessionManager()
   private readonly store = new SessionStore()
-  private readonly restoringSessions = new Map<string, Promise<PiAcpSession>>()
+  private readonly restoringSessions = new Map<string, Promise<PideaSession>>()
 
   async dispose(): Promise<void> {
     await this.sessions.disposeAll()
@@ -184,7 +184,7 @@ export class PiAcpAgent implements ACPAgent {
     correlationId: string,
     cwd: string
   ): Promise<{ bridge: AcpMcpBridge; settings: BridgeSpawnSettings }> {
-    if (process.env.PI_ACP_DEBUG_BRIDGE === '1') logBridgeDescriptors(mcpServers, cwd)
+    if (process.env.PIDEA_DEBUG_BRIDGE === '1') logBridgeDescriptors(mcpServers, cwd)
     const bridge = new AcpMcpBridge(this.conn, mcpServers, correlationId, { cwd })
     try {
       return { bridge, settings: await bridge.start() }
@@ -272,7 +272,7 @@ export class PiAcpAgent implements ACPAgent {
   private async restoreSession(
     sessionId: string,
     opts?: { cwd?: string; mcpServers?: LoadSessionRequest['mcpServers'] }
-  ): Promise<PiAcpSession> {
+  ): Promise<PideaSession> {
     const existing = this.sessions.maybeGet(sessionId)
     if (existing) return existing
 
@@ -289,7 +289,7 @@ export class PiAcpAgent implements ACPAgent {
 
       // MCP bridge: connect client-provided ACP or stdio MCP servers and
       // prepare the pi subprocess to expose their tools (best effort; failures
-      // degrade to ordinary pi-acp sessions without IDE tools).
+      // degrade to ordinary pidea sessions without IDE tools).
       const { bridge, settings: bridgeSettings } = await this.startBridge(opts?.mcpServers ?? [], sessionId, cwd)
 
       let proc: PiRpcProcess
@@ -297,7 +297,7 @@ export class PiAcpAgent implements ACPAgent {
         proc = await PiRpcProcess.spawn({
           cwd,
           sessionPath: stored.sessionFile,
-          piCommand: process.env.PI_ACP_PI_COMMAND,
+          piCommand: process.env.PIDEA_PI_COMMAND,
           extensionPaths: sessionExtensionPaths(bridgeSettings.extensionPaths),
           env: { ...bridgeSettings.env, ...sessionExtensionEnv(this.sessions.clientCapabilities) }
         })
@@ -381,11 +381,11 @@ export class PiAcpAgent implements ACPAgent {
     return {
       protocolVersion: requested === supportedVersion ? requested : supportedVersion,
       agentInfo: {
-        name: 'pi-acp',
+        name: 'pidea',
         title: 'pi ACP adapter',
         version: pkg.version ?? '0.0.0',
         _meta: {
-          piAcp: {
+          pidea: {
             build: {
               revision: buildInfo.revision,
               buildTime: buildInfo.buildTime,
@@ -407,7 +407,7 @@ export class PiAcpAgent implements ACPAgent {
         promptCapabilities: {
           image: true,
           audio: false,
-          embeddedContext: process.env.PI_ACP_ENABLE_EMBEDDED_CONTEXT === 'true'
+          embeddedContext: process.env.PIDEA_ENABLE_EMBEDDED_CONTEXT === 'true'
         },
         sessionCapabilities: {
           // **UNSTABLE** ACP capability used by Zed's codex-acp adapter.
@@ -448,7 +448,7 @@ export class PiAcpAgent implements ACPAgent {
         mcpServers: params.mcpServers,
         conn: this.conn,
         fileCommands,
-        piCommand: process.env.PI_ACP_PI_COMMAND,
+        piCommand: process.env.PIDEA_PI_COMMAND,
         bridge,
         extensionPaths: bridgeSettings.extensionPaths,
         env: bridgeSettings.env
@@ -555,7 +555,7 @@ export class PiAcpAgent implements ACPAgent {
       configOptions,
       models,
       _meta: {
-        piAcp: {
+        pidea: {
           startupInfo: preludeText || null
         }
       }
@@ -852,9 +852,9 @@ export class PiAcpAgent implements ACPAgent {
           // 1) Locate the installed pi package by resolving the `pi` executable.
           // On Node installs, `pi` typically resolves to .../@earendil-works/pi-coding-agent/dist/cli.js
           try {
-            // Use the configured pi command (PI_ACP_PI_COMMAND) so the changelog
+            // Use the configured pi command (PIDEA_PI_COMMAND) so the changelog
             // lookup matches the executable the adapter actually spawns (F-024).
-            const piCommand = getPiCommand(process.env.PI_ACP_PI_COMMAND)
+            const piCommand = getPiCommand(process.env.PIDEA_PI_COMMAND)
             const whichCmd = process.platform === 'win32' ? 'where' : 'which'
             const which = spawnSync(whichCmd, [piCommand], { encoding: 'utf-8' })
             const piPath = String(which.stdout ?? '')
@@ -1098,11 +1098,11 @@ export class PiAcpAgent implements ACPAgent {
       const inspection = await this.enforceIdeInspection(session)
       const mutationViolations = await this.enforceIdeMutationProvenance(session, ideMutationsBefore)
       session.touchedFilePaths.clear()
-      const piAcpMeta: Record<string, unknown> = {}
-      if (inspection) piAcpMeta.inspection = inspection
-      if (mutationViolations && mutationViolations.length > 0) piAcpMeta.mutationViolations = mutationViolations
-      if (Object.keys(piAcpMeta).length > 0) {
-        return { stopReason: 'end_turn', usage, _meta: { piAcp: piAcpMeta } }
+      const pideaMeta: Record<string, unknown> = {}
+      if (inspection) pideaMeta.inspection = inspection
+      if (mutationViolations && mutationViolations.length > 0) pideaMeta.mutationViolations = mutationViolations
+      if (Object.keys(pideaMeta).length > 0) {
+        return { stopReason: 'end_turn', usage, _meta: { pidea: pideaMeta } }
       }
     }
 
@@ -1114,10 +1114,10 @@ export class PiAcpAgent implements ACPAgent {
    * own lint_files/get_file_problems tools over this turn's changed files via
    * the bridge connection, persists a report, and surfaces a summary. Never
    * throws: an unavailable bridge/tool or any failure degrades to a diagnostic
-   * instead of breaking the turn. Opt out with PI_ACP_ENFORCE_IDE_INSPECT=0.
+   * instead of breaking the turn. Opt out with PIDEA_ENFORCE_IDE_INSPECT=0.
    */
-  private async enforceIdeInspection(session: PiAcpSession): Promise<IdeInspectionOutcome | null> {
-    if (process.env.PI_ACP_ENFORCE_IDE_INSPECT === '0') return null
+  private async enforceIdeInspection(session: PideaSession): Promise<IdeInspectionOutcome | null> {
+    if (process.env.PIDEA_ENFORCE_IDE_INSPECT === '0') return null
     try {
       const outcome = await runEnforcedInspection({
         bridge: session.mcpBridge ?? undefined,
@@ -1126,7 +1126,7 @@ export class PiAcpAgent implements ACPAgent {
         extraFiles: [...session.touchedFilePaths],
         // Audit P2-4: let hosts move reports out of the project tree; the
         // project-local default stays (smoke tooling reads it).
-        outputDir: process.env.PI_ACP_IDE_INSPECT_DIR
+        outputDir: process.env.PIDEA_IDE_INSPECT_DIR
       })
       const summary = inspectionSummary(outcome)
       if (summary) {
@@ -1138,7 +1138,7 @@ export class PiAcpAgent implements ACPAgent {
       return outcome
     } catch (error) {
       process.stderr.write(
-        `[pi-acp] IDE inspection failed: ${String((error as Error)?.message ?? error)}
+        `[pidea] IDE inspection failed: ${String((error as Error)?.message ?? error)}
 `
       )
       return null
@@ -1149,15 +1149,15 @@ export class PiAcpAgent implements ACPAgent {
    * Post-turn mutation provenance gate (IntelliJ-first enforcement): compares
    * files changed during the turn (git status merged with turn-touched tool
    * paths) against the paths the extension reported as applied by IDE mutation
-   * tools. Surfaced as agent_message_chunk + _meta.piAcp.mutationViolations;
-   * never throws. Opt out with PI_ACP_ENFORCE_IDE_MUTATIONS=0.
+   * tools. Surfaced as agent_message_chunk + _meta.pidea.mutationViolations;
+   * never throws. Opt out with PIDEA_ENFORCE_IDE_MUTATIONS=0.
    */
   private async enforceIdeMutationProvenance(
-    session: PiAcpSession,
+    session: PideaSession,
     ideMutationsBefore: ReadonlySet<string>
   ): Promise<string[] | null> {
-    if (process.env.PI_ACP_ENFORCE_IDE_MUTATIONS === '0') return null
-    const ideMode = process.env.PI_ACP_IDE_MODE
+    if (process.env.PIDEA_ENFORCE_IDE_MUTATIONS === '0') return null
+    const ideMode = process.env.PIDEA_IDE_MODE
     if (ideMode === undefined || ideMode === '' || ideMode === 'off') return null
     if (!session.mcpBridge) return null
     try {
@@ -1175,7 +1175,7 @@ export class PiAcpAgent implements ACPAgent {
       return violations
     } catch (error) {
       process.stderr.write(
-        `[pi-acp] IDE mutation provenance failed: ${String((error as Error)?.message ?? error)}
+        `[pidea] IDE mutation provenance failed: ${String((error as Error)?.message ?? error)}
 `
       )
       return null
@@ -1189,10 +1189,10 @@ export class PiAcpAgent implements ACPAgent {
     // (which can be slow when pi is mid-turn). Queue clearing is synchronous inside
     // session.cancel(); the rest runs in the background (F-018).
     void session.cancel().catch(e => {
-      process.stderr.write(`[pi-acp] session/cancel abort failed: ${String((e as Error)?.message ?? e)}\n`)
+      process.stderr.write(`[pidea] session/cancel abort failed: ${String((e as Error)?.message ?? e)}\n`)
     })
   }
-  private async collectTurnUsage(session: PiAcpSession): Promise<Usage | null> {
+  private async collectTurnUsage(session: PideaSession): Promise<Usage | null> {
     // A settled turn already fetched stats for its context usage_update; reuse them.
     const settled = session.takeSettledTurnStats()
     if (settled !== undefined) return sessionStatsToAcpUsage(settled)
@@ -1232,7 +1232,7 @@ export class PiAcpAgent implements ACPAgent {
       proc = await PiRpcProcess.spawn({
         cwd: params.cwd,
         sessionPath: source.sessionFile,
-        piCommand: process.env.PI_ACP_PI_COMMAND,
+        piCommand: process.env.PIDEA_PI_COMMAND,
         extensionPaths: sessionExtensionPaths(bridgeSettings.extensionPaths),
         env: { ...bridgeSettings.env, ...sessionExtensionEnv(this.sessions.clientCapabilities) }
       })
@@ -1297,7 +1297,7 @@ export class PiAcpAgent implements ACPAgent {
             sessionId,
             configOptions,
             _meta: {
-              piAcp: {
+              pidea: {
                 fork: {
                   fromSessionId: params.sessionId,
                   entryId,
@@ -1381,7 +1381,7 @@ export class PiAcpAgent implements ACPAgent {
     try {
       proc = await PiRpcProcess.spawn({
         cwd,
-        piCommand: process.env.PI_ACP_PI_COMMAND
+        piCommand: process.env.PIDEA_PI_COMMAND
       })
       const data = (await proc.getAvailableModels()) as { models?: unknown } | null
       const models: Array<Record<string, unknown>> = Array.isArray(data?.models)
@@ -1601,7 +1601,7 @@ export class PiAcpAgent implements ACPAgent {
       configOptions,
       models,
       _meta: {
-        piAcp: {
+        pidea: {
           startupInfo: restoredStartupInfo
         }
       }
@@ -1670,7 +1670,7 @@ export class PiAcpAgent implements ACPAgent {
         // keep the mapping so a retry can delete the session again.
         return {
           _meta: {
-            piAcp: {
+            pidea: {
               deleteError: `failed to remove session file ${sessionFile}: ${e instanceof Error ? e.message : String(e)}`
             }
           }
@@ -1774,7 +1774,7 @@ async function getThinkingState(
 
 /** Appends the session-level options (tool approval, file access) to pi's model and thinking options. */
 async function withSessionConfigOptions(
-  session: PiAcpSession | undefined,
+  session: PideaSession | undefined,
   configOptions: SessionConfigOption[]
 ): Promise<SessionConfigOption[]> {
   // Tests sometimes stub sessions without these APIs.
@@ -1927,7 +1927,7 @@ async function getModelState(
 
 async function emitConfigOptionsUpdate(
   conn: AgentSideConnection,
-  session: PiAcpSession
+  session: PideaSession
 ): Promise<SessionConfigOption[]> {
   const sessionId = session.sessionId
   const configOptions = await withSessionConfigOptions(
@@ -2005,7 +2005,7 @@ function buildUpdateNotice(): string | null {
   // Best-effort update check against npm registry.
   // Important: keep it fast to not slow down session/new.
   try {
-    const piVersion = crossSpawn.sync(getPiCommand(process.env.PI_ACP_PI_COMMAND), ['--version'], { encoding: 'utf-8' })
+    const piVersion = crossSpawn.sync(getPiCommand(process.env.PIDEA_PI_COMMAND), ['--version'], { encoding: 'utf-8' })
     const installed = (String(piVersion.stdout ?? '').trim() || String(piVersion.stderr ?? '').trim()).replace(
       /^v/i,
       ''
@@ -2033,7 +2033,7 @@ function buildUpdateNotice(): string | null {
 /**
  * Debug-only stderr dump of the raw session/new mcpServers descriptor.
  * IntelliJ pipes the adapter's stderr into idea.log, so a fresh chat with
- * PI_ACP_DEBUG_BRIDGE=1 captures the exact descriptor the host sent.
+ * PIDEA_DEBUG_BRIDGE=1 captures the exact descriptor the host sent.
  * Values are redacted except for known local-only keys.
  */
 export function sanitizeBridgeDescriptors(mcpServers: NewSessionRequest['mcpServers']): unknown {
@@ -2066,7 +2066,7 @@ export function sanitizeBridgeDescriptors(mcpServers: NewSessionRequest['mcpServ
 function logBridgeDescriptors(mcpServers: NewSessionRequest['mcpServers'], cwd: string): void {
   try {
     process.stderr.write(
-      `[pi-acp] session/new mcpServers (cwd=${cwd}): ${JSON.stringify(sanitizeBridgeDescriptors(mcpServers))}\n`
+      `[pidea] session/new mcpServers (cwd=${cwd}): ${JSON.stringify(sanitizeBridgeDescriptors(mcpServers))}\n`
     )
   } catch {
     // Never let debug logging break the session.
@@ -2135,14 +2135,14 @@ export function buildStartupInfo(opts: {
 
   const md: string[] = []
 
-  const buildLine = `pi-acp ${buildInfo.packageVersion} (build ${buildInfo.revision}${buildInfo.dirty ? ', dirty source' : ''}${buildInfo.buildTime ? ', ' + buildInfo.buildTime : ''})`
+  const buildLine = `pidea ${buildInfo.packageVersion} (build ${buildInfo.revision}${buildInfo.dirty ? ', dirty source' : ''}${buildInfo.buildTime ? ', ' + buildInfo.buildTime : ''})`
   md.push(buildLine)
   md.push('---')
   md.push('')
 
   // pi version header
   try {
-    const piVersion = crossSpawn.sync(getPiCommand(process.env.PI_ACP_PI_COMMAND), ['--version'], { encoding: 'utf-8' })
+    const piVersion = crossSpawn.sync(getPiCommand(process.env.PIDEA_PI_COMMAND), ['--version'], { encoding: 'utf-8' })
     const installed = (String(piVersion.stdout ?? '').trim() || String(piVersion.stderr ?? '').trim()).replace(
       /^v/i,
       ''
@@ -2354,9 +2354,7 @@ export function buildStartupInfo(opts: {
   const text = md.join('\n').trim() + '\n'
   // Hard production cap so pathological trees cannot balloon session/new
   // regardless of the per-section caps above (P2-12 audit).
-  return text.length > MAX_STARTUP_MD
-    ? `${text.slice(0, MAX_STARTUP_MD)}\n… (startup info truncated by pi-acp)\n`
-    : text
+  return text.length > MAX_STARTUP_MD ? `${text.slice(0, MAX_STARTUP_MD)}\n… (startup info truncated by pidea)\n` : text
 }
 
 function readNearestPackageJson(metaUrl: string): {
@@ -2378,5 +2376,5 @@ function readNearestPackageJson(metaUrl: string): {
   } catch {
     // ignore
   }
-  return { name: 'pi-acp', version: '0.0.0' }
+  return { name: 'pidea', version: '0.0.0' }
 }

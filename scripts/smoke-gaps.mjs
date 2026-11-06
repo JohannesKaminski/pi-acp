@@ -51,7 +51,7 @@ try {
   assert(forkedId !== sessionId, `fork returned the source sessionId ${forkedId}`)
   assert(Array.isArray(forked?.configOptions), 'fork missing configOptions array')
   assert(forked?.modes === undefined, 'fork must not send thinking levels as modes')
-  assert(typeof forked?._meta?.piAcp?.fork?.entryId === 'string', 'fork missing _meta.piAcp.fork.entryId')
+  assert(typeof forked?._meta?.pidea?.fork?.entryId === 'string', 'fork missing _meta.pidea.fork.entryId')
 
   // The fork's pi process is live and can answer a prompt on its own branch.
   const forkedPrompt = await h.expectResult(

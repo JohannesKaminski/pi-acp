@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 import { listPiSessions } from '../../src/acp/pi-sessions.js'
 import { SessionStore } from '../../src/acp/session-store.js'
 import { PiRpcProcess } from '../../src/pi-rpc/process.js'
@@ -27,8 +27,8 @@ class RestoredPiProcess extends FakePiRpcProcess {
 
 for (const mode of ['load', 'prompt'] as const) {
   for (const titleState of ['saved', 'fallback', 'cleared', 'cleared-in-tail'] as const) {
-    test(`PiAcpAgent: ${mode} restores ${titleState} title without renaming history`, async t => {
-      const root = mkdtempSync(join(tmpdir(), 'pi-acp-restored-title-'))
+    test(`PideaAgent: ${mode} restores ${titleState} title without renaming history`, async t => {
+      const root = mkdtempSync(join(tmpdir(), 'pidea-restored-title-'))
       const sessionsDir = join(root, 'sessions')
       const sessionFile = join(sessionsDir, 'history.jsonl')
       mkdirSync(sessionsDir)
@@ -64,7 +64,7 @@ for (const mode of ['load', 'prompt'] as const) {
       })
 
       const conn = new FakeAgentSideConnection()
-      const agent = new PiAcpAgent(asAgentConn(conn))
+      const agent = new PideaAgent(asAgentConn(conn))
       const store = new SessionStore(join(root, 'session-map.json'))
       store.upsert({ sessionId: 'restored', cwd: root, sessionFile })
       Object.defineProperty(agent, 'store', { value: store })

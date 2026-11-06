@@ -12,7 +12,7 @@ import {
 } from './mcp-types.js'
 
 export interface IpcEndpoint {
-  /** Path passed to the pi extension via PI_ACP_MCP_IPC_ENDPOINT. */
+  /** Path passed to the pi extension via PIDEA_MCP_IPC_ENDPOINT. */
   endpoint: string
   token: string
   sessionId: string
@@ -101,10 +101,10 @@ export class McpIpcServer {
 
   static async start(sessionId: string): Promise<McpIpcServer> {
     const token = randomBytes(24).toString('hex')
-    const dir = mkdtempSync(join(tmpdir(), 'pi-acp-mcp-'))
+    const dir = mkdtempSync(join(tmpdir(), 'pidea-mcp-'))
     const endpoint =
       process.platform === 'win32'
-        ? `\\\\?\\pipe\\pi-acp-mcp-${createHash('sha1')
+        ? `\\\\?\\pipe\\pidea-mcp-${createHash('sha1')
             .update(sessionId + token)
             .digest('hex')
             .slice(0, 16)}`

@@ -38,7 +38,7 @@ test('expandSlashCommand: expands known command with all arguments', () => {
 })
 
 test('loadSlashCommands: carries argument-hint into ACP command input', t => {
-  const cwd = mkdtempSync(join(tmpdir(), 'pi-acp-prompt-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'pidea-prompt-'))
   t.after(() => rmSync(cwd, { recursive: true, force: true }))
   mkdirSync(join(cwd, '.pi', 'prompts'), { recursive: true })
   writeFileSync(

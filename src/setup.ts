@@ -3,7 +3,7 @@ import { homedir } from 'node:os'
 import { delimiter, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-export const DEFAULT_ENTRY_NAME = 'pi-acp'
+export const DEFAULT_ENTRY_NAME = 'pidea'
 
 export interface SetupOptions {
   /** Absolute path of the node binary that should run the adapter. */
@@ -39,7 +39,7 @@ export function buildEntry(opts: SetupOptions): Json {
     ...opts.basePath.split(sep)
   ])
   const env: Record<string, string> = { PATH: folders.join(sep) }
-  if (opts.piPath) env.PI_ACP_PI_COMMAND = opts.piPath
+  if (opts.piPath) env.PIDEA_PI_COMMAND = opts.piPath
 
   return { command: opts.nodePath, args: [opts.scriptPath], env }
 }
@@ -85,7 +85,7 @@ function parseArgs(argv: string[]): { name: string; config: string; dryRun: bool
     if (a === '--dry-run') dryRun = true
     else if (a === '--name') name = argv[++i] ?? name
     else if (a === '--config') config = argv[++i] ?? config
-    else throw new Error(`unknown option: ${a}\nusage: pi-acp setup [--dry-run] [--name <entry>] [--config <acp.json>]`)
+    else throw new Error(`unknown option: ${a}\nusage: pidea setup [--dry-run] [--name <entry>] [--config <acp.json>]`)
   }
   return { name, config, dryRun }
 }
@@ -95,7 +95,7 @@ export function runSetup(argv: string[]): number {
   const scriptPath = fileURLToPath(import.meta.url)
   if (isEphemeralInstall(scriptPath)) {
     process.stderr.write(
-      'pi-acp setup: running from the npx cache, which can be deleted at any time. Install the adapter first (see the README), then run `pi-acp setup`.\n'
+      'pidea setup: running from the npx cache, which can be deleted at any time. Install the adapter first (see the README), then run `pidea setup`.\n'
     )
     return 1
   }
@@ -106,7 +106,7 @@ export function runSetup(argv: string[]): number {
     try {
       existing = JSON.parse(readFileSync(config, 'utf8')) as Json
     } catch (e) {
-      process.stderr.write(`pi-acp setup: ${config} is not valid JSON (${(e as Error).message}); not touching it.\n`)
+      process.stderr.write(`pidea setup: ${config} is not valid JSON (${(e as Error).message}); not touching it.\n`)
       return 1
     }
   }
@@ -122,7 +122,7 @@ export function runSetup(argv: string[]): number {
 
   if (!piPath) {
     process.stderr.write(
-      'pi-acp setup: warning: `pi` was not found on PATH. Install pi with `npm install -g @earendil-works/pi-coding-agent`, then run setup again.\n'
+      'pidea setup: warning: `pi` was not found on PATH. Install pi with `npm install -g @earendil-works/pi-coding-agent`, then run setup again.\n'
     )
   }
   if (dryRun) {

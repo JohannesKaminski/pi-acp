@@ -31,7 +31,7 @@ try {
   assert(r2?.stopReason === 'end_turn', `second turn stopReason=${r2?.stopReason}`)
 
   // The adapter queue must drain back to 0 (session_info_update queueDepth).
-  const drained = h.updates.filter(u => u?._meta?.piAcp?.queueDepth === 0).length
+  const drained = h.updates.filter(u => u?._meta?.pidea?.queueDepth === 0).length
   assert(drained >= 1, 'no queueDepth:0 info update observed after the queued turns')
 
   console.log('OK smoke-queue (2 concurrent prompts serialized end_turn; queueDepth drained to 0)')

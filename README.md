@@ -1,7 +1,7 @@
-# pi-acp
+# pidea
 
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![check](https://github.com/JohannesKaminski/pi-acp/actions/workflows/check.yml/badge.svg)](https://github.com/JohannesKaminski/pi-acp/actions/workflows/check.yml)
+[![check](https://github.com/JohannesKaminski/pidea/actions/workflows/check.yml/badge.svg)](https://github.com/JohannesKaminski/pidea/actions/workflows/check.yml)
 
 An Agent Client Protocol (ACP) adapter for the pi coding agent. JetBrains IntelliJ is the primary host. Other ACP clients work with partial coverage.
 
@@ -11,9 +11,9 @@ This project started as a fork of [svkozak/pi-acp](https://github.com/svkozak/pi
 
 ## In action
 
-![pi-acp serving a live session in IntelliJ](assets/pi-acp-jetbrain-demo.gif)
+![pidea serving a live session in IntelliJ](assets/pidea-demo.gif)
 
-![pi-acp session in IntelliJ](assets/pi-acp-jetbrain-ide.png)
+![pidea session in IntelliJ](assets/pidea-ide.png)
 
 ## Install
 
@@ -24,17 +24,17 @@ The adapter loads its bundled pi extensions (IDE bridge, tool approval, file acc
 ### Quick start (from GitHub)
 
 ```bash
-npm install -g --allow-git=all github:JohannesKaminski/pi-acp#<tag-or-commit>
-pi-acp setup    # optional, JetBrains IDEs only
+npm install -g --allow-git=all github:JohannesKaminski/pidea#<tag-or-commit>
+pidea setup    # optional, JetBrains IDEs only
 ```
 
 npm clones the ref, installs the build tools, and builds `dist/` through the `prepare` script. npm 12 refuses git installs unless you opt in with `--allow-git=all`; older npm versions ignore the flag. Pin a tag or commit hash: a branch name can keep an older build in npm's cache.
 
-`pi-acp setup` is optional and only matters for JetBrains IDEs; other ACP clients just need `pi-acp` as the agent command. It writes the agent entry into `~/.jetbrains/acp.json` for you: the absolute path of the `node` that ran it, the adapter's `dist/index.js`, the path of `pi`, and an explicit `PATH`. Other agents and your own settings in that file (for example `idea_mcp_allowed_tools`) are kept, and the original file is saved once as `acp.json.bak`. Restart the IDE and pick `pi-acp` in the AI Chat.
+`pidea setup` is optional and only matters for JetBrains IDEs; other ACP clients just need `pidea` as the agent command. It writes the agent entry into `~/.jetbrains/acp.json` for you: the absolute path of the `node` that ran it, the adapter's `dist/index.js`, the path of `pi`, and an explicit `PATH`. Other agents and your own settings in that file (for example `idea_mcp_allowed_tools`) are kept, and the original file is saved once as `acp.json.bak`. Restart the IDE and pick `pidea` in the AI Chat.
 
-Options: `--dry-run` prints the result without writing, `--name <entry>` changes the entry name, `--config <path>` targets another file. Run `pi-acp setup` again after switching node versions (nvm) or moving pi. It refuses to run from the `npx` cache, since that path can disappear.
+Options: `--dry-run` prints the result without writing, `--name <entry>` changes the entry name, `--config <path>` targets another file. Run `pidea setup` again after switching node versions (nvm) or moving pi. It refuses to run from the `npx` cache, since that path can disappear.
 
-The installed command is `pi-acp`.
+The installed command is `pidea`.
 
 ### From a tarball (another machine)
 
@@ -42,14 +42,14 @@ Pack the adapter on a machine with the repository:
 
 ```bash
 npm install
-npm pack        # writes pi-acp-<version>.tgz
+npm pack        # writes pidea-<version>.tgz
 ```
 
 Copy the tarball to the other machine and run:
 
 ```bash
-npm install -g ./pi-acp-<version>.tgz
-pi-acp setup
+npm install -g ./pidea-<version>.tgz
+pidea setup
 ```
 
 The tarball can be deleted afterwards. To update, install a newer tarball and restart the IDE.
@@ -65,11 +65,11 @@ node dist/index.js setup
 
 ### Manual setup
 
-`pi-acp setup` is a convenience. To write the entry yourself, see the next section.
+`pidea setup` is a convenience. To write the entry yourself, see the next section.
 
 ### Register the adapter in IntelliJ
 
-In the AI Chat tool window, open the menu in the upper-right corner and choose **Add Custom Agent**. IntelliJ creates `~/.jetbrains/acp.json` (the file and folder do not exist before) and opens it. A complete example; replace the placeholders with the absolute paths from `which pi-acp`, `which node`, and `which pi`:
+In the AI Chat tool window, open the menu in the upper-right corner and choose **Add Custom Agent**. IntelliJ creates `~/.jetbrains/acp.json` (the file and folder do not exist before) and opens it. A complete example; replace the placeholders with the absolute paths from `which pidea`, `which node`, and `which pi`:
 
 ```json
 {
@@ -78,8 +78,8 @@ In the AI Chat tool window, open the menu in the upper-right corner and choose *
     "use_custom_mcp": true
   },
   "agent_servers": {
-    "pi-acp": {
-      "command": "/path/to/pi-acp",
+    "pidea": {
+      "command": "/path/to/pidea",
       "args": [],
       "env": { "PATH": "/folder/of/node:/folder/of/pi:/usr/local/bin:/usr/bin:/bin" }
     }
@@ -88,10 +88,10 @@ In the AI Chat tool window, open the menu in the upper-right corner and choose *
 ```
 
 - `use_idea_mcp` is off by default in IntelliJ. Without it IntelliJ sends no IDE tools, and the IDE bridge has nothing to expose.
-- `pi-acp`, `npx`, and pi's launcher all start with `#!/usr/bin/env node`, so the agent process needs the folders of both `node` and `pi` on its PATH. Depending on how the IDE was started (desktop launcher, Dock, JetBrains Toolbox), it may not see the PATH your shell sets up in `.bashrc`, `.zshrc`, or `.profile`. Setting `PATH` in `env` makes it explicit, but it replaces the inherited PATH rather than adding to it: list every folder the adapter needs. A missing folder shows up as "ACP process exited unexpectedly. Exit code 127".
+- `pidea`, `npx`, and pi's launcher all start with `#!/usr/bin/env node`, so the agent process needs the folders of both `node` and `pi` on its PATH. Depending on how the IDE was started (desktop launcher, Dock, JetBrains Toolbox), it may not see the PATH your shell sets up in `.bashrc`, `.zshrc`, or `.profile`. Setting `PATH` in `env` makes it explicit, but it replaces the inherited PATH rather than adding to it: list every folder the adapter needs. A missing folder shows up as "ACP process exited unexpectedly. Exit code 127".
 - Typical folders: `/usr/local/bin` or `/usr/bin` for system packages, `/opt/homebrew/bin` for Homebrew on Apple silicon, and `~/.nvm/versions/node/<version>/bin` (written out absolutely) for nvm; other version managers have similar versioned folders.
-- Without relying on PATH: use the full path to `node` as `command`, the adapter's `dist/index.js` as the argument, and set `PI_ACP_PI_COMMAND` to the full path of `pi`.
-- On Windows, `pi`, `pi-acp`, and `npx` are `.cmd` launchers: find them with `where pi-acp`, `where node`, and `where pi`, and separate `PATH` entries with `;`.
+- Without relying on PATH: use the full path to `node` as `command`, the adapter's `dist/index.js` as the argument, and set `PIDEA_PI_COMMAND` to the full path of `pi`.
+- On Windows, `pi`, `pidea`, and `npx` are `.cmd` launchers: find them with `where pidea`, `where node`, and `where pi`, and separate `PATH` entries with `;`.
 - Restart the IDE after changing `acp.json`, and open a new chat after updating the adapter. IntelliJ reuses running agent processes and caches some agent UI until it restarts.
 
 A development profile with a conservative IDE tool subset:
@@ -99,12 +99,12 @@ A development profile with a conservative IDE tool subset:
 ```json
 {
   "agent_servers": {
-    "pi-acp": {
-      "command": "/path/to/pi-acp/dist/index.js",
+    "pidea": {
+      "command": "/path/to/pidea/dist/index.js",
       "args": [],
       "env": {
-        "PI_ACP_PI_COMMAND": "/path/to/pi",
-        "PI_ACP_DEBUG_BRIDGE": "1"
+        "PIDEA_PI_COMMAND": "/path/to/pi",
+        "PIDEA_DEBUG_BRIDGE": "1"
       },
       "idea_mcp_allowed_tools": [
         "search_symbol",
@@ -138,7 +138,7 @@ A development profile with a conservative IDE tool subset:
 
 ### Sessions
 
-The adapter covers the session surface: `session/new`, `session/prompt`, `session/cancel`, `session/list`, `session/load`, `session/fork`, `session/resume`, `session/close`, `session/delete`. Pi keeps its own session files. The adapter keeps a small map at `~/.pi/pi-acp/session-map.json` so a load can reattach to the stored session.
+The adapter covers the session surface: `session/new`, `session/prompt`, `session/cancel`, `session/list`, `session/load`, `session/fork`, `session/resume`, `session/close`, `session/delete`. Pi keeps its own session files. The adapter keeps a small map at `~/.pi/pidea/session-map.json` so a load can reattach to the stored session.
 
 Reopening a chat (IntelliJ uses `session/load`) replays the history from pi's stored session, tool calls included, with the same titles and kinds as live.
 
@@ -150,12 +150,12 @@ Each session starts with a startup block (adapter build, pi version, loaded cont
 
 Each session offers these options next to the chat input or in the model dialog:
 
-| Setting       | Values                                                              | Default            | Environment default                    |
-| ------------- | ------------------------------------------------------------------- | ------------------ | -------------------------------------- |
-| Model         | pi's available models                                               | pi's default       |                                        |
-| Thinking      | the levels the current model supports                               | pi's default       |                                        |
-| Tool approval | Off, Ask for edits & commands, Ask for everything                   | Off                | `PI_ACP_TOOL_APPROVAL=off\|edits\|all` |
-| File access   | Through the editor, Disk (only with client file read/write support) | Through the editor | `PI_ACP_FILE_ACCESS=disk\|editor`      |
+| Setting       | Values                                                              | Default            | Environment default                   |
+| ------------- | ------------------------------------------------------------------- | ------------------ | ------------------------------------- |
+| Model         | pi's available models                                               | pi's default       |                                       |
+| Thinking      | the levels the current model supports                               | pi's default       |                                       |
+| Tool approval | Off, Ask for edits & commands, Ask for everything                   | Off                | `PIDEA_TOOL_APPROVAL=off\|edits\|all` |
+| File access   | Through the editor, Disk (only with client file read/write support) | Through the editor | `PIDEA_FILE_ACCESS=disk\|editor`      |
 
 IntelliJ applies setting changes right before the next prompt.
 
@@ -187,7 +187,7 @@ The adapter also sends `usage_update` on `session/new` and `session/load`, and a
 
 ### Attached files and selections
 
-IntelliJ attaches a file as a link and an editor selection as a pointer in byte offsets, not as text. The adapter resolves the pointer before pi sees the prompt: it reads the file the way the File access setting says (through the editor, unsaved changes included, or from disk), and gives pi the selected code with its file and line range. A pointer that doesn't fit the file passes through unchanged. Embedded context (`PI_ACP_ENABLE_EMBEDDED_CONTEXT`) makes no difference in IntelliJ, which sends the same blocks either way.
+IntelliJ attaches a file as a link and an editor selection as a pointer in byte offsets, not as text. The adapter resolves the pointer before pi sees the prompt: it reads the file the way the File access setting says (through the editor, unsaved changes included, or from disk), and gives pi the selected code with its file and line range. A pointer that doesn't fit the file passes through unchanged. Embedded context (`PIDEA_ENABLE_EMBEDDED_CONTEXT`) makes no difference in IntelliJ, which sends the same blocks either way.
 
 ### Input requests
 
@@ -203,30 +203,30 @@ IntelliJ sends its built-in MCP server descriptor with each chat (with `use_idea
 
 The bridge opens a direct MCP-over-SSE client against `http://127.0.0.1:<IJ_MCP_SERVER_PORT>/sse` when the descriptor carries that port. It starts the stdio child only when that endpoint is unreachable.
 
-Two allowlists guard the IDE tools. The IDE side reads `idea_mcp_allowed_tools` from `~/.jetbrains/acp.json`. An omitted key means AllowAll in the installed build. The adapter side deny-lists `execute_tool` and every `xdebug_*` name. Set `PI_ACP_IDE_EXTRA_TOOLS` with a comma separated list of remote names to re-allow tools you reviewed.
+Two allowlists guard the IDE tools. The IDE side reads `idea_mcp_allowed_tools` from `~/.jetbrains/acp.json`. An omitted key means AllowAll in the installed build. The adapter side deny-lists `execute_tool` and every `xdebug_*` name. Set `PIDEA_IDE_EXTRA_TOOLS` with a comma separated list of remote names to re-allow tools you reviewed.
 
 The session catalog never changes. After you edit IntelliJ MCP settings or the allowlist, open a new chat.
 
 ## Environment variables
 
-| Variable                                | Effect                                                                                                                                               |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PI_ACP_PI_COMMAND`                     | Path to the pi executable. Default: `pi`.                                                                                                            |
-| `PI_ACP_TOOL_APPROVAL=off\|edits\|all`  | Default tool approval mode for new sessions. Default: `off`.                                                                                         |
-| `PI_ACP_FILE_ACCESS=disk\|editor`       | Default file access for read/edit/write in new sessions, for clients with fs support. Default: `editor`.                                             |
-| `PI_ACP_DEBUG_ACP=1` or a file path     | Log incoming ACP requests and outgoing errors to `~/.pi/pi-acp/acp-debug.log` (or the given file). Prompt text, images, env and headers are omitted. |
-| `PI_ACP_DEBUG_BRIDGE=1`                 | Log the sanitized `session/new` MCP descriptor to stderr. IntelliJ writes that stderr into `idea.log`.                                               |
-| `PI_ACP_ENABLE_EMBEDDED_CONTEXT=true`   | Advertise `embeddedContext` support.                                                                                                                 |
-| `PI_ACP_ENFORCE_IDE_INSPECT=0`          | Disable the inspection gate that runs after each turn.                                                                                               |
-| `PI_ACP_ENFORCE_IDE_MUTATIONS=0`        | Disable the mutation provenance gate. See the IntelliJ-first coding mode section.                                                                    |
-| `PI_ACP_IDE_MODE=off\|prefer\|required` | IntelliJ-first coding mode for the session. Default: `off`. See the IntelliJ-first coding mode section.                                              |
-| `PI_ACP_IDE_INSPECT_DIR`                | Move inspection reports out of the project tree.                                                                                                     |
-| `PI_ACP_SESSION_MAP`                    | Override the session map path. Default: `~/.pi/pi-acp/session-map.json`.                                                                             |
-| `PI_ACP_IDE_EXTRA_TOOLS`                | Re-allow deny-listed IDE tools. Comma separated remote names.                                                                                        |
+| Variable                               | Effect                                                                                                                                              |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PIDEA_PI_COMMAND`                     | Path to the pi executable. Default: `pi`.                                                                                                           |
+| `PIDEA_TOOL_APPROVAL=off\|edits\|all`  | Default tool approval mode for new sessions. Default: `off`.                                                                                        |
+| `PIDEA_FILE_ACCESS=disk\|editor`       | Default file access for read/edit/write in new sessions, for clients with fs support. Default: `editor`.                                            |
+| `PIDEA_DEBUG_ACP=1` or a file path     | Log incoming ACP requests and outgoing errors to `~/.pi/pidea/acp-debug.log` (or the given file). Prompt text, images, env and headers are omitted. |
+| `PIDEA_DEBUG_BRIDGE=1`                 | Log the sanitized `session/new` MCP descriptor to stderr. IntelliJ writes that stderr into `idea.log`.                                              |
+| `PIDEA_ENABLE_EMBEDDED_CONTEXT=true`   | Advertise `embeddedContext` support.                                                                                                                |
+| `PIDEA_ENFORCE_IDE_INSPECT=0`          | Disable the inspection gate that runs after each turn.                                                                                              |
+| `PIDEA_ENFORCE_IDE_MUTATIONS=0`        | Disable the mutation provenance gate. See the IntelliJ-first coding mode section.                                                                   |
+| `PIDEA_IDE_MODE=off\|prefer\|required` | IntelliJ-first coding mode for the session. Default: `off`. See the IntelliJ-first coding mode section.                                             |
+| `PIDEA_IDE_INSPECT_DIR`                | Move inspection reports out of the project tree.                                                                                                    |
+| `PIDEA_SESSION_MAP`                    | Override the session map path. Default: `~/.pi/pidea/session-map.json`.                                                                             |
+| `PIDEA_IDE_EXTRA_TOOLS`                | Re-allow deny-listed IDE tools. Comma separated remote names.                                                                                       |
 
 ## IntelliJ-first coding mode
 
-Set `PI_ACP_IDE_MODE` to control how the session uses IntelliJ for normal coding work. Pi still generates every implementation; IntelliJ opens, reads, searches, applies, renames, reformats, and validates.
+Set `PIDEA_IDE_MODE` to control how the session uses IntelliJ for normal coding work. Pi still generates every implementation; IntelliJ opens, reads, searches, applies, renames, reformats, and validates.
 
 - `off` (default) keeps the current behavior: IDE tools are exposed alongside native tools, nothing is removed, no extra prompt guidance.
 - `prefer` removes the native `read`, `edit`, `write`, `grep`, `find`, and `ls` tools from the active set when the required IDE capabilities register. If the IDE bridge degrades, those tools come back and the session gets an explicit fallback notice.
@@ -240,7 +240,7 @@ Bash stays available in `prefer` for Git, tests, builds, and diagnostics. Unrest
 
 In `prefer` and `required` with an active catalog, direct Fabric/Schema file mutations (`schema.commit`, `pi.write`, `pi.edit` inside `fabric_exec`) are blocked before execution by a `tool_call` gate. Mutations must flow through the IDE tools (`ide_idea_apply_patch`, `ide_idea_create_new_file`, rename, reformat), which open affected files and confine patch/path arguments to the project root. Read-only Fabric code (`pi.read`, `pi.grep`, IDE tool calls) is unaffected. This closes the extension-tool bypass of the active-set filter; Bash remains an intentional, documented exception.
 
-A second layer runs after each turn: the extension reports paths applied by successful IDE mutation tools over the authenticated IPC (`mutations_applied`), and the adapter compares those against files changed during the turn (git status merged with turn-touched tool paths). Files that changed without an IDE mutation event are surfaced as `Mutation provenance` violations in the chat and recorded under `PromptResponse._meta.piAcp.mutationViolations`. Disable with `PI_ACP_ENFORCE_IDE_MUTATIONS=0`. Deleted files and files committed mid-turn by an external commit are not detected by this layer (same git-status semantics as the inspection gate).
+A second layer runs after each turn: the extension reports paths applied by successful IDE mutation tools over the authenticated IPC (`mutations_applied`), and the adapter compares those against files changed during the turn (git status merged with turn-touched tool paths). Files that changed without an IDE mutation event are surfaced as `Mutation provenance` violations in the chat and recorded under `PromptResponse._meta.pidea.mutationViolations`. Disable with `PIDEA_ENFORCE_IDE_MUTATIONS=0`. Deleted files and files committed mid-turn by an external commit are not detected by this layer (same git-status semantics as the inspection gate).
 
 The File access setting is the protocol-standard way to route pi's read, edit, and write through the editor in any ACP client; this mode goes further and replaces pi's native tools with IntelliJ's MCP tools.
 
@@ -249,9 +249,9 @@ Set the variable for the adapter process, for example in `~/.jetbrains/acp.json`
 ```json
 {
   "agent_servers": {
-    "pi-acp": {
-      "command": "/path/to/pi-acp/dist/index.js",
-      "env": { "PI_ACP_IDE_MODE": "prefer", "PI_ACP_PI_COMMAND": "/path/to/pi" }
+    "pidea": {
+      "command": "/path/to/pidea/dist/index.js",
+      "env": { "PIDEA_IDE_MODE": "prefer", "PIDEA_PI_COMMAND": "/path/to/pi" }
     }
   }
 }
@@ -262,7 +262,7 @@ Set the variable for the adapter process, for example in `~/.jetbrains/acp.json`
 The adapter advertises terminal auth metadata. Run this command for interactive provider login:
 
 ```bash
-pi-acp --terminal-login
+pidea --terminal-login
 ```
 
 ACP clients can start the same command from their auth UI.
@@ -295,7 +295,7 @@ Tests:
 - `test/component/` and `test/unit/` cover edge cases with a fake pi process. Its events are type-checked against pi's exported event types, so a renamed pi event fails `npm run typecheck`.
 - `npm run smoke:full` uses your own pi providers and is for release checks.
 
-To see what a client actually sends, set `PI_ACP_DEBUG_ACP=1` and read `~/.pi/pi-acp/acp-debug.log`.
+To see what a client actually sends, set `PIDEA_DEBUG_ACP=1` and read `~/.pi/pidea/acp-debug.log`.
 
 CI: `check.yml` runs the canonical check, tests, lint, typecheck, build, and the packaging check on Linux (Node 22 and 24) and Windows (Node 24).
 
@@ -309,7 +309,7 @@ the adapter's process environment in that working directory. Run the adapter onl
 hosts and MCP configurations you control. Do not expose it as a service to untrusted clients
 or place unnecessary secrets in the adapter environment.
 
-`PI_ACP_IDE_MODE=prefer|required` is policy enforcement for normal coding tools, not a
+`PIDEA_IDE_MODE=prefer|required` is policy enforcement for normal coding tools, not a
 filesystem sandbox: unrestricted Bash stays available, and the post-turn gates report
 violations without rolling back changes.
 

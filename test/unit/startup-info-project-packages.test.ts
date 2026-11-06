@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 import { FakeAgentSideConnection, asAgentConn } from '../helpers/fakes.js'
 
 // noinspection JSUnusedGlobalSymbols
@@ -12,7 +12,7 @@ class FakeSessions {
   closeAllExcept() {}
 }
 
-test('PiAcpAgent: startup info includes project-level packages from .pi/settings.json', async () => {
+test('PideaAgent: startup info includes project-level packages from .pi/settings.json', async () => {
   const { mkdtempSync, writeFileSync, mkdirSync } = await import('node:fs')
   const { tmpdir } = await import('node:os')
   const { join } = await import('node:path')
@@ -20,12 +20,12 @@ test('PiAcpAgent: startup info includes project-level packages from .pi/settings
   const prevAgentDir = process.env.PI_CODING_AGENT_DIR
 
   // Create a fake global agent dir (empty settings)
-  const agentDir = mkdtempSync(join(tmpdir(), 'pi-acp-global-'))
+  const agentDir = mkdtempSync(join(tmpdir(), 'pidea-global-'))
   writeFileSync(join(agentDir, 'settings.json'), JSON.stringify({ packages: ['npm:global-ext'] }), 'utf-8')
   process.env.PI_CODING_AGENT_DIR = agentDir
 
   // Create a fake project dir with .pi/settings.json containing packages
-  const projectDir = mkdtempSync(join(tmpdir(), 'pi-acp-project-'))
+  const projectDir = mkdtempSync(join(tmpdir(), 'pidea-project-'))
   const piDir = join(projectDir, '.pi')
   mkdirSync(piDir)
   writeFileSync(join(piDir, 'settings.json'), JSON.stringify({ packages: ['/path/to/local-extension'] }), 'utf-8')
@@ -60,11 +60,11 @@ test('PiAcpAgent: startup info includes project-level packages from .pi/settings
       sendStartupInfoIfPending() {}
     }
 
-    const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+    const agent = new PideaAgent(asAgentConn(conn), {} as any)
     ;(agent as any).sessions = new FakeSessions(session) as any
 
     const res = await agent.newSession({ cwd: projectDir, mcpServers: [] } as any)
-    const startupInfo: string = res?._meta?.piAcp?.startupInfo ?? ''
+    const startupInfo: string = res?._meta?.pidea?.startupInfo ?? ''
 
     assert.ok(startupInfo.includes('npm:global-ext'), 'should include global package')
     assert.ok(startupInfo.includes('/path/to/local-extension'), 'should include project package')

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 import { PiRpcProcess } from '../../src/pi-rpc/process.js'
 import { FakeAgentSideConnection, asAgentConn } from '../helpers/fakes.js'
 
@@ -14,7 +14,7 @@ function buildAgent(opts: {
   sessions?: Record<string, unknown>
 }) {
   const _conn = opts.conn ?? new FakeAgentSideConnection()
-  const agent = new PiAcpAgent(asAgentConn(_conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(_conn), {} as any)
   ;(agent as any).sessions = opts.sessions ?? {
     maybeGet: () => undefined,
     getOrCreate: () => ({ sessionId: 'new', touchedFilePaths: new Set() }),
@@ -29,7 +29,7 @@ function buildAgent(opts: {
   return { agent, conn: _conn }
 }
 
-test('PiAcpAgent: initialize advertises fork/resume/close/providers capabilities', async () => {
+test('PideaAgent: initialize advertises fork/resume/close/providers capabilities', async () => {
   const { agent } = buildAgent({})
   const res = await agent.initialize({ protocolVersion: 1, clientCapabilities: {} } as any)
   assert.deepEqual((res.agentCapabilities as any).sessionCapabilities, {
@@ -42,9 +42,9 @@ test('PiAcpAgent: initialize advertises fork/resume/close/providers capabilities
   assert.deepEqual((res.agentCapabilities as any).providers, {})
 })
 
-test('PiAcpAgent: unstable_forkSession loads the source session and forks at the last user message', async () => {
+test('PideaAgent: unstable_forkSession loads the source session and forks at the last user message', async () => {
   const conn = new FakeAgentSideConnection()
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp-fork-'))
+  const root = mkdtempSync(join(tmpdir(), 'pidea-fork-'))
   const srcFile = join(root, 'src.jsonl')
   writeFileSync(srcFile, '{}' + '\n')
 
@@ -70,7 +70,7 @@ test('PiAcpAgent: unstable_forkSession loads the source session and forks at the
       },
       getState: async () => ({
         sessionId: 'forked-pi-id',
-        sessionFile: '/tmp/pi-acp-fork/branched.jsonl',
+        sessionFile: '/tmp/pidea-fork/branched.jsonl',
         thinkingLevel: 'medium'
       }),
       getAvailableModels: async () => ({ models: [{ provider: 'openai', id: 'gpt-4o' }] }),
@@ -89,7 +89,7 @@ test('PiAcpAgent: unstable_forkSession loads the source session and forks at the
   }
 
   try {
-    const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+    const agent = new PideaAgent(asAgentConn(conn), {} as any)
     ;(agent as any).sessions = sessions as any
     ;(agent as any).store = {
       get: () => ({ cwd: root, sessionFile: srcFile }),
@@ -109,15 +109,13 @@ test('PiAcpAgent: unstable_forkSession loads the source session and forks at the
     assert.deepEqual(forkCalls, ['u2'])
     // The new ACP session adopts pi's fresh branched session id/file.
     assert.equal(res.sessionId, 'forked-pi-id')
-    assert.deepEqual(upserts, [
-      { sessionId: 'forked-pi-id', cwd: root, sessionFile: '/tmp/pi-acp-fork/branched.jsonl' }
-    ])
-    assert.deepEqual((res._meta as any).piAcp.fork, {
+    assert.deepEqual(upserts, [{ sessionId: 'forked-pi-id', cwd: root, sessionFile: '/tmp/pidea-fork/branched.jsonl' }])
+    assert.deepEqual((res._meta as any).pidea.fork, {
       fromSessionId: 'src-1',
       entryId: 'u2',
       text: 'Forked',
       cancelled: false,
-      sessionFile: '/tmp/pi-acp-fork/branched.jsonl'
+      sessionFile: '/tmp/pidea-fork/branched.jsonl'
     })
     assert.deepEqual(closed, ['forked-pi-id'])
   } finally {
@@ -125,9 +123,9 @@ test('PiAcpAgent: unstable_forkSession loads the source session and forks at the
   }
 })
 
-test('PiAcpAgent: unstable_forkSession rejects a source without user messages and cleans up', async () => {
+test('PideaAgent: unstable_forkSession rejects a source without user messages and cleans up', async () => {
   const conn = new FakeAgentSideConnection()
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp-fork-empty-'))
+  const root = mkdtempSync(join(tmpdir(), 'pidea-fork-empty-'))
   const srcFile = join(root, 'src.jsonl')
   writeFileSync(srcFile, '{}' + '\n')
 
@@ -142,7 +140,7 @@ test('PiAcpAgent: unstable_forkSession rejects a source without user messages an
   })
 
   try {
-    const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+    const agent = new PideaAgent(asAgentConn(conn), {} as any)
     ;(agent as any).sessions = {
       maybeGet: () => undefined,
       getOrCreate: (sessionId: string) => ({ sessionId, touchedFilePaths: new Set() }),
@@ -167,7 +165,7 @@ test('PiAcpAgent: unstable_forkSession rejects a source without user messages an
   }
 })
 
-test('PiAcpAgent: unstable_forkSession rejects unknown sessions and relative cwds', async () => {
+test('PideaAgent: unstable_forkSession rejects unknown sessions and relative cwds', async () => {
   const { agent } = buildAgent({ stored: null })
   await assert.rejects(
     agent.unstable_forkSession({ sessionId: 'nope', cwd: '/tmp/x' } as any),
@@ -179,9 +177,9 @@ test('PiAcpAgent: unstable_forkSession rejects unknown sessions and relative cwd
   )
 })
 
-test('PiAcpAgent: resumeSession restores the stored session and returns configOptions', async () => {
+test('PideaAgent: resumeSession restores the stored session and returns configOptions', async () => {
   const conn = new FakeAgentSideConnection()
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp-resume-'))
+  const root = mkdtempSync(join(tmpdir(), 'pidea-resume-'))
   const sessionFile = join(root, 'session.jsonl')
   writeFileSync(sessionFile, '{}' + '\n')
 
@@ -198,7 +196,7 @@ test('PiAcpAgent: resumeSession restores the stored session and returns configOp
   }
 
   try {
-    const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+    const agent = new PideaAgent(asAgentConn(conn), {} as any)
     ;(agent as any).sessions = {
       maybeGet: () => undefined,
       getOrCreate: (sessionId: string, params: Record<string, unknown>) => ({
@@ -227,7 +225,7 @@ test('PiAcpAgent: resumeSession restores the stored session and returns configOp
   }
 })
 
-test('PiAcpAgent: resumeSession rejects unknown session ids', async () => {
+test('PideaAgent: resumeSession rejects unknown session ids', async () => {
   const { agent } = buildAgent({ stored: null })
   await assert.rejects(
     agent.resumeSession({ sessionId: 'nope', cwd: '/tmp/x' } as any),
@@ -235,7 +233,7 @@ test('PiAcpAgent: resumeSession rejects unknown session ids', async () => {
   )
 })
 
-test('PiAcpAgent: closeSession cancels and disposes a live session and is idempotent otherwise', async () => {
+test('PideaAgent: closeSession cancels and disposes a live session and is idempotent otherwise', async () => {
   let cancelled = 0
   const closed: string[] = []
   const live = {
@@ -260,7 +258,7 @@ test('PiAcpAgent: closeSession cancels and disposes a live session and is idempo
   assert.deepEqual(closed, ['live-1'])
 })
 
-test('PiAcpAgent: prompt includes cumulative usage when pi reports session stats', async () => {
+test('PideaAgent: prompt includes cumulative usage when pi reports session stats', async () => {
   const conn = new FakeAgentSideConnection()
   const promptCalls: string[] = []
 
@@ -287,7 +285,7 @@ test('PiAcpAgent: prompt includes cumulative usage when pi reports session stats
   })
 
   try {
-    const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+    const agent = new PideaAgent(asAgentConn(conn), {} as any)
     ;(agent as any).sessions = sessions as any
     ;(agent as any).store = {
       get: () => ({ cwd: '/tmp/p', sessionFile: '/tmp/p/s.jsonl' }),
@@ -307,7 +305,7 @@ test('PiAcpAgent: prompt includes cumulative usage when pi reports session stats
       totalTokens: 15,
       inputTokens: 10,
       outputTokens: 5,
-      _meta: { piAcp: { cost: 0.5 } }
+      _meta: { pidea: { cost: 0.5 } }
     })
   } finally {
     PiRpcProcess.spawn = originalSpawn

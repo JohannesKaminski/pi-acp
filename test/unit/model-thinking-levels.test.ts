@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { SessionManager } from '../../src/acp/session.js'
 import { SessionStore } from '../../src/acp/session-store.js'
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 import { PiRpcProcess } from '../../src/pi-rpc/process.js'
 import { FakeAgentSideConnection, asAgentConn } from '../helpers/fakes.js'
 
@@ -42,7 +42,7 @@ function fixture() {
     sendStartupInfoIfPending() {},
     async publishContextUsage() {}
   }
-  const agent = new PiAcpAgent(asAgentConn(conn))
+  const agent = new PideaAgent(asAgentConn(conn))
   Reflect.set(agent, 'sessions', {
     maybeGet: () => session,
     get: () => session,
@@ -146,14 +146,14 @@ test('invalid configuration and legacy mode requests do not mutate Pi', async ()
   ]) {
     await assert.rejects(
       agent.setSessionConfigOption({ sessionId: 's1', ...request } as Parameters<
-        PiAcpAgent['setSessionConfigOption']
+        PideaAgent['setSessionConfigOption']
       >[0]),
       { code: -32602 }
     )
   }
   for (const modeId of ['', 1, null]) {
     await assert.rejects(
-      agent.setSessionMode({ sessionId: 's1', modeId } as Parameters<PiAcpAgent['setSessionMode']>[0]),
+      agent.setSessionMode({ sessionId: 's1', modeId } as Parameters<PideaAgent['setSessionMode']>[0]),
       { code: -32602 }
     )
   }
@@ -190,7 +190,7 @@ for (const load of [false, true]) {
 
 for (const failure of ['discovery', 'missing-current', 'inconsistent-current', 'state']) {
   test(`load configuration ${failure} failure closes restored child and preserves history for retry`, async t => {
-    const root = mkdtempSync(join(tmpdir(), 'pi-acp-load-thinking-'))
+    const root = mkdtempSync(join(tmpdir(), 'pidea-load-thinking-'))
     t.after(() => rmSync(root, { recursive: true, force: true }))
     t.mock.method(globalThis, 'setTimeout', () => 0 as unknown as ReturnType<typeof setTimeout>)
     const sessionFile = join(root, 'history.jsonl')

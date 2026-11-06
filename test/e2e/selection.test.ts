@@ -36,11 +36,11 @@ async function userTextFor(opts: {
   end: number
   clientCapabilities?: ClientCapabilities
 }): Promise<string> {
-  const dir = mkdtempSync(join(tmpdir(), 'pi-acp-sel-'))
+  const dir = mkdtempSync(join(tmpdir(), 'pidea-sel-'))
   const capture = join(dir, 'requests.jsonl')
   const c = E2EClient.start({
     clientCapabilities: opts.clientCapabilities,
-    env: { PI_ACP_E2E_CAPTURE: capture },
+    env: { PIDEA_E2E_CAPTURE: capture },
     script: { responses: [{ content: [{ text: 'ok' }] }] }
   })
   try {

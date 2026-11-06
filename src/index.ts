@@ -1,16 +1,16 @@
 import { AgentSideConnection, ndJsonStream } from '@agentclientprotocol/sdk'
-import { PiAcpAgent } from './acp/agent.js'
+import { PideaAgent } from './acp/agent.js'
 import { createAcpDebugLog, lineTap } from './acp/debug-log.js'
 import { exitOnCrash } from './exit-on-crash.js'
 import { getPiCommand, shouldUseShellForPiCommand } from './pi-rpc/command.js'
-// `pi-acp setup`: write the IntelliJ agent entry (~/.jetbrains/acp.json). ACP clients launch the
+// `pidea setup`: write the IntelliJ agent entry (~/.jetbrains/acp.json). ACP clients launch the
 // adapter without arguments, so this never collides with a session.
 if (process.argv[2] === 'setup') {
   const { runSetup } = await import('./setup.js')
   try {
     process.exit(runSetup(process.argv.slice(3)))
   } catch (e) {
-    process.stderr.write(`pi-acp setup: ${(e as Error).message}\n`)
+    process.stderr.write(`pidea setup: ${(e as Error).message}\n`)
     process.exit(1)
   }
 }
@@ -18,7 +18,7 @@ if (process.argv[2] === 'setup') {
 // Terminal Auth entrypoint. The ACP client launches the agent with `--terminal-login`.
 if (process.argv.includes('--terminal-login')) {
   const { spawnSync } = await import('node:child_process')
-  const cmd = getPiCommand(process.env.PI_ACP_PI_COMMAND)
+  const cmd = getPiCommand(process.env.PIDEA_PI_COMMAND)
   const res = spawnSync(cmd, [], {
     stdio: 'inherit',
     env: process.env,
@@ -27,7 +27,7 @@ if (process.argv.includes('--terminal-login')) {
 
   if ((res as any).error && (res as any).error.code === 'ENOENT') {
     process.stderr.write(
-      `pi-acp: could not start pi (command not found: ${cmd}). Install it via \`npm install -g @earendil-works/pi-coding-agent\` or ensure \`pi\` is on your PATH.\n`
+      `pidea: could not start pi (command not found: ${cmd}). Install it via \`npm install -g @earendil-works/pi-coding-agent\` or ensure \`pi\` is on your PATH.\n`
     )
     process.exit(1)
   }
@@ -35,8 +35,8 @@ if (process.argv.includes('--terminal-login')) {
   process.exit(typeof res.status === 'number' ? res.status : 1)
 }
 
-// Opt-in ACP traffic log (PI_ACP_DEBUG_ACP); see src/acp/debug-log.ts.
-const debugLog = createAcpDebugLog(process.env.PI_ACP_DEBUG_ACP)
+// Opt-in ACP traffic log (PIDEA_DEBUG_ACP); see src/acp/debug-log.ts.
+const debugLog = createAcpDebugLog(process.env.PIDEA_DEBUG_ACP)
 const tapOutgoing = debugLog ? lineTap(line => debugLog.outgoing(line)) : null
 const tapIncoming = debugLog ? lineTap(line => debugLog.incoming(line)) : null
 
@@ -76,9 +76,9 @@ const stream = ndJsonStream(input, output)
 
 // Retain the agent so shutdown can dispose owned pi subprocesses. The SDK's
 // AgentSideConnection does not expose the handler instance it created.
-let activeAgent: PiAcpAgent | null = null
+let activeAgent: PideaAgent | null = null
 new AgentSideConnection(conn => {
-  activeAgent = new PiAcpAgent(conn)
+  activeAgent = new PideaAgent(conn)
   return activeAgent
 }, stream)
 

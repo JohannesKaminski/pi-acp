@@ -9,7 +9,7 @@ import { createFakeSseServer } from './helpers/fake-sse-server.js'
 import { buildInfo } from '../../src/build-info.js'
 
 async function connectIpc(settings: { env: Record<string, string> }, sessionIdOverride?: string) {
-  const sock = createConnection(settings.env.PI_ACP_MCP_IPC_ENDPOINT)
+  const sock = createConnection(settings.env.PIDEA_MCP_IPC_ENDPOINT)
   const lines = createInterface({ input: sock })
   const iterator = lines[Symbol.asyncIterator]()
   const nextMessage = async (): Promise<any> => {
@@ -22,8 +22,8 @@ async function connectIpc(settings: { env: Record<string, string> }, sessionIdOv
     JSON.stringify({
       type: 'hello',
       version: BRIDGE_IPC_VERSION,
-      token: settings.env.PI_ACP_MCP_IPC_TOKEN,
-      sessionId: sessionIdOverride ?? settings.env.PI_ACP_MCP_SESSION_ID
+      token: settings.env.PIDEA_MCP_IPC_TOKEN,
+      sessionId: sessionIdOverride ?? settings.env.PIDEA_MCP_SESSION_ID
     }) + '\n'
   )
   const helloAck = await nextMessage()
@@ -339,9 +339,9 @@ describe('AcpMcpBridge', () => {
       params: { connectionId: 'conn-srv-1', method: 'notifications/initialized', params: {} }
     })
     assert.equal(settings.extensionPaths.length, 1)
-    assert.ok(settings.env.PI_ACP_MCP_IPC_ENDPOINT)
-    assert.ok(settings.env.PI_ACP_MCP_IPC_TOKEN)
-    assert.equal(settings.env.PI_ACP_MCP_SESSION_ID, 'session-1')
+    assert.ok(settings.env.PIDEA_MCP_IPC_ENDPOINT)
+    assert.ok(settings.env.PIDEA_MCP_IPC_TOKEN)
+    assert.equal(settings.env.PIDEA_MCP_SESSION_ID, 'session-1')
 
     const tools = bridge.tools
     assert.equal(tools.length, 1)

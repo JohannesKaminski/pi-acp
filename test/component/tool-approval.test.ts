@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PiAcpSession } from '../../src/acp/session.js'
+import { PideaSession } from '../../src/acp/session.js'
 import {
   TOOL_APPROVAL_COMMAND,
   decodeApprovalTitle,
@@ -11,7 +11,7 @@ import {
 import { FakeAgentSideConnection, FakePiRpcProcess, asAgentConn } from '../helpers/fakes.js'
 
 function makeSession(proc: FakePiRpcProcess, conn = new FakeAgentSideConnection()) {
-  return new PiAcpSession({
+  return new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -46,7 +46,7 @@ test('tool approval: the dialog title round-trips and ordinary titles are not mi
   assert.equal(decodeApprovalTitle(undefined), null)
 })
 
-test('PiAcpSession: tool approval is unavailable, and no command is sent, when pi lacks the extension', async () => {
+test('PideaSession: tool approval is unavailable, and no command is sent, when pi lacks the extension', async () => {
   const proc = withCommands(new FakePiRpcProcess(), ['some-other-command'])
   const session = makeSession(proc)
 
@@ -55,7 +55,7 @@ test('PiAcpSession: tool approval is unavailable, and no command is sent, when p
   assert.deepEqual(proc.prompts, [], 'the internal command never reaches pi (it would become a model prompt)')
 })
 
-test('PiAcpSession: a mode change sends the internal command and updates the option', async () => {
+test('PideaSession: a mode change sends the internal command and updates the option', async () => {
   const proc = withCommands(new FakePiRpcProcess(), [TOOL_APPROVAL_COMMAND])
   const session = makeSession(proc)
 
@@ -69,7 +69,7 @@ test('PiAcpSession: a mode change sends the internal command and updates the opt
   assert.equal((await session.toolApprovalOption())?.currentValue, 'edits')
 })
 
-test('PiAcpSession: a mode change during a running turn is applied when the turn settles', async () => {
+test('PideaSession: a mode change during a running turn is applied when the turn settles', async () => {
   const proc = withCommands(new FakePiRpcProcess(), [TOOL_APPROVAL_COMMAND])
   const session = makeSession(proc)
   await session.toolApprovalOption()
@@ -91,7 +91,7 @@ test('PiAcpSession: a mode change during a running turn is applied when the turn
   )
 })
 
-test('PiAcpSession: an approval dialog becomes a permission request; no answer means reject', async () => {
+test('PideaSession: an approval dialog becomes a permission request; no answer means reject', async () => {
   const proc = withCommands(new FakePiRpcProcess(), [TOOL_APPROVAL_COMMAND])
   const conn = new FakeAgentSideConnection()
   conn.nextPermissionResponse = { outcome: { outcome: 'cancelled' } }

@@ -1,12 +1,12 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PiAcpSession } from '../../src/acp/session.js'
+import { PideaSession } from '../../src/acp/session.js'
 import { FakeAgentSideConnection, FakePiRpcProcess, asAgentConn } from '../helpers/fakes.js'
 
 async function completePrompt(content: string, prompt: string): Promise<string> {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
-  const session = new PiAcpSession({
+  const session = new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -25,11 +25,11 @@ async function completePrompt(content: string, prompt: string): Promise<string> 
   return proc.prompts[0]!.message
 }
 
-test('PiAcpSession: expands positional prompt arguments before sending to pi', async () => {
+test('PideaSession: expands positional prompt arguments before sending to pi', async () => {
   assert.equal(await completePrompt('Expanded $1', '/hello world'), 'Expanded world')
 })
 
-test('PiAcpSession: expands $ARGUMENTS before sending to pi', async () => {
+test('PideaSession: expands $ARGUMENTS before sending to pi', async () => {
   assert.equal(
     await completePrompt('Expanded $ARGUMENTS / ${2:-fallback}', '/hello "wide world" now'),
     'Expanded wide world now / now'

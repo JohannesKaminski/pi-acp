@@ -32,25 +32,25 @@ describe('default IDE deny-list', () => {
     assert.equal(isDefaultDenied('xdebug_set_breakpoint', extra), true)
   })
 
-  it('parses the PI_ACP_IDE_EXTRA_TOOLS env override', () => {
-    const prev = process.env.PI_ACP_IDE_EXTRA_TOOLS
-    process.env.PI_ACP_IDE_EXTRA_TOOLS = ' execute_tool, xdebug_set_breakpoint '
+  it('parses the PIDEA_IDE_EXTRA_TOOLS env override', () => {
+    const prev = process.env.PIDEA_IDE_EXTRA_TOOLS
+    process.env.PIDEA_IDE_EXTRA_TOOLS = ' execute_tool, xdebug_set_breakpoint '
     try {
       assert.deepEqual([...extraAllowSet()], ['execute_tool', 'xdebug_set_breakpoint'])
     } finally {
-      if (prev === undefined) delete process.env.PI_ACP_IDE_EXTRA_TOOLS
-      else process.env.PI_ACP_IDE_EXTRA_TOOLS = prev
+      if (prev === undefined) delete process.env.PIDEA_IDE_EXTRA_TOOLS
+      else process.env.PIDEA_IDE_EXTRA_TOOLS = prev
     }
   })
 
   it('treats empty and unset override as no extra tools', () => {
-    const prev = process.env.PI_ACP_IDE_EXTRA_TOOLS
-    delete process.env.PI_ACP_IDE_EXTRA_TOOLS
+    const prev = process.env.PIDEA_IDE_EXTRA_TOOLS
+    delete process.env.PIDEA_IDE_EXTRA_TOOLS
     try {
       assert.deepEqual([...extraAllowSet()], [])
     } finally {
-      if (prev === undefined) delete process.env.PI_ACP_IDE_EXTRA_TOOLS
-      else process.env.PI_ACP_IDE_EXTRA_TOOLS = prev
+      if (prev === undefined) delete process.env.PIDEA_IDE_EXTRA_TOOLS
+      else process.env.PIDEA_IDE_EXTRA_TOOLS = prev
     }
   })
 })

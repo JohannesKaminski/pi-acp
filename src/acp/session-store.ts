@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { randomUUID } from 'node:crypto'
-import { getPiAcpSessionMapPath } from './paths.js'
+import { getPideaSessionMapPath } from './paths.js'
 
 export type StoredSession = {
   sessionId: string
@@ -76,7 +76,7 @@ function loadFile(path: string): SessionMapFile {
   } catch (e) {
     if (existsSync(path)) {
       process.stderr.write(
-        `[pi-acp] session map ${path} is unreadable; starting with an empty map (P2-7 audit): ${e instanceof Error ? e.message : String(e)}\n`
+        `[pidea] session map ${path} is unreadable; starting with an empty map (P2-7 audit): ${e instanceof Error ? e.message : String(e)}\n`
       )
     }
     return { version: 1, sessions: {} }
@@ -97,7 +97,7 @@ function saveFile(path: string, data: SessionMapFile): void {
 export class SessionStore {
   private readonly path: string
 
-  constructor(path = getPiAcpSessionMapPath()) {
+  constructor(path = getPideaSessionMapPath()) {
     this.path = path
   }
 

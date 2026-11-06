@@ -43,8 +43,8 @@ try {
   }
   assert(loaded.modes === undefined, 'session/load must not send thinking levels as modes')
   assert(
-    loaded._meta?.piAcp?.startupInfo == null,
-    `expected null startupInfo on headless load, got ${JSON.stringify(loaded._meta?.piAcp?.startupInfo)}`
+    loaded._meta?.pidea?.startupInfo == null,
+    `expected null startupInfo on headless load, got ${JSON.stringify(loaded._meta?.pidea?.startupInfo)}`
   )
   const replay = b.updates.length
   assert(replay > 0, 'session/load did not replay history updates')

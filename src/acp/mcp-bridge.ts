@@ -137,7 +137,7 @@ type RemoteToolsPage = { tools?: RemoteTool[]; nextCursor?: string }
  * profile (AGENTS.md): universal execution, debugger launch/control, and
  * breakpoint mutation. Every `xdebug_*` remote name is denied by prefix (the
  * live catalog keeps growing beyond the names pinned here), plus the explicit
- * names below. Explicitly re-allow a reviewed tool with PI_ACP_IDE_EXTRA_TOOLS
+ * names below. Explicitly re-allow a reviewed tool with PIDEA_IDE_EXTRA_TOOLS
  * (comma-separated remote names); AllowAll is never implied by this list.
  */
 const DEFAULT_IDE_DENYLIST = [
@@ -149,7 +149,7 @@ const DEFAULT_IDE_DENYLIST = [
 
 export function extraAllowSet(): ReadonlySet<string> {
   return new Set(
-    (process.env.PI_ACP_IDE_EXTRA_TOOLS ?? '')
+    (process.env.PIDEA_IDE_EXTRA_TOOLS ?? '')
       .split(',')
       .map(name => name.trim())
       .filter(name => name.length > 0)
@@ -283,7 +283,7 @@ export class AcpMcpBridge {
         {
           protocolVersion: MCP_PROTOCOL_VERSION,
           capabilities: {},
-          clientInfo: { name: 'pi-acp', version: buildInfo.packageVersion }
+          clientInfo: { name: 'pidea', version: buildInfo.packageVersion }
         },
         this.#discoveryTimeoutMs
       ),
@@ -354,7 +354,7 @@ export class AcpMcpBridge {
     for (const tool of remoteTools) {
       if (isDefaultDenied(tool.name, extraAllowSet())) {
         this.#diagnostics.push(
-          `IDE bridge: ${server.name} tool excluded from default profile (${tool.name}; re-allow with PI_ACP_IDE_EXTRA_TOOLS)`
+          `IDE bridge: ${server.name} tool excluded from default profile (${tool.name}; re-allow with PIDEA_IDE_EXTRA_TOOLS)`
         )
         continue
       }
@@ -463,7 +463,7 @@ export class AcpMcpBridge {
               params: {
                 protocolVersion: MCP_PROTOCOL_VERSION,
                 capabilities: {},
-                clientInfo: { name: 'pi-acp', version: buildInfo.packageVersion }
+                clientInfo: { name: 'pidea', version: buildInfo.packageVersion }
               }
             }),
             this.#discoveryTimeoutMs
@@ -634,9 +634,9 @@ export class AcpMcpBridge {
     return {
       extensionPaths: extensionPath ? [extensionPath] : [],
       env: {
-        PI_ACP_MCP_IPC_ENDPOINT: ipc.endpoint().endpoint,
-        PI_ACP_MCP_IPC_TOKEN: ipc.endpoint().token,
-        PI_ACP_MCP_SESSION_ID: this.sessionId
+        PIDEA_MCP_IPC_ENDPOINT: ipc.endpoint().endpoint,
+        PIDEA_MCP_IPC_TOKEN: ipc.endpoint().token,
+        PIDEA_MCP_SESSION_ID: this.sessionId
       }
     }
   }

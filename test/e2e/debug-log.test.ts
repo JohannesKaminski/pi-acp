@@ -5,11 +5,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { E2EClient } from './harness.js'
 
-test('e2e: PI_ACP_DEBUG_ACP logs incoming methods and error responses without prompt text', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pi-acp-debug-'))
+test('e2e: PIDEA_DEBUG_ACP logs incoming methods and error responses without prompt text', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'pidea-debug-'))
   const logFile = join(dir, 'acp.log')
   const c = E2EClient.start({
-    env: { PI_ACP_DEBUG_ACP: logFile },
+    env: { PIDEA_DEBUG_ACP: logFile },
     script: { responses: [{ content: [{ text: 'ok' }] }] }
   })
   try {

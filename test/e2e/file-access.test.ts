@@ -82,8 +82,8 @@ test('e2e: without client fs support the file access option is not offered', asy
   }
 })
 
-test('e2e: PI_ACP_FILE_ACCESS=disk keeps the disk as the default', async () => {
-  const c = E2EClient.start({ clientCapabilities: FS, env: { PI_ACP_FILE_ACCESS: 'disk' }, script: READ_THEN_EDIT })
+test('e2e: PIDEA_FILE_ACCESS=disk keeps the disk as the default', async () => {
+  const c = E2EClient.start({ clientCapabilities: FS, env: { PIDEA_FILE_ACCESS: 'disk' }, script: READ_THEN_EDIT })
   try {
     const file = join(c.workspace, 'notes.txt')
     writeFileSync(file, 'unsaved on disk\n')

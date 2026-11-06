@@ -1,5 +1,5 @@
 // Packaging check: pack the npm tarball, install it into a clean temporary prefix, and
-// confirm the installed `pi-acp` starts and answers `initialize`. Catches anything that
+// confirm the installed `pidea` starts and answers `initialize`. Catches anything that
 // works only inside this repo, e.g. a runtime import of a devDependency such as
 // pi-coding-agent (installs don't have it). Doesn't need pi: initialize never spawns it.
 import crossSpawn from 'cross-spawn'
@@ -9,8 +9,8 @@ import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)))
-const work = mkdtempSync(join(tmpdir(), 'pi-acp-pack-'))
-// cross-spawn runs Windows .cmd launchers (npm, pi-acp), which Node refuses without a shell.
+const work = mkdtempSync(join(tmpdir(), 'pidea-pack-'))
+// cross-spawn runs Windows .cmd launchers (npm, pidea), which Node refuses without a shell.
 function run(command, args, cwd) {
   const result = crossSpawn.sync(command, args, { cwd, stdio: ['ignore', 'ignore', 'inherit'] })
   if (result.error) throw result.error
@@ -34,16 +34,14 @@ try {
   run('npm', ['install', '-g', '--prefix', prefix, tarball, '--no-audit', '--no-fund'], work)
 
   const pkgDir =
-    process.platform === 'win32'
-      ? join(prefix, 'node_modules', 'pi-acp')
-      : join(prefix, 'lib', 'node_modules', 'pi-acp')
+    process.platform === 'win32' ? join(prefix, 'node_modules', 'pidea') : join(prefix, 'lib', 'node_modules', 'pidea')
   // Every built entry (adapter and bundled pi extensions) must be in the installed package.
   const extensions = readdirSync(join(root, 'dist', 'pi-extension')).filter(name => name.endsWith('.js'))
   for (const file of ['dist/index.js', ...extensions.map(name => `dist/pi-extension/${name}`)]) {
     if (!existsSync(join(pkgDir, file))) fail(`installed package is missing ${file}`)
   }
 
-  const bin = process.platform === 'win32' ? join(prefix, 'pi-acp.cmd') : join(prefix, 'bin', 'pi-acp')
+  const bin = process.platform === 'win32' ? join(prefix, 'pidea.cmd') : join(prefix, 'bin', 'pidea')
   const child = crossSpawn(bin, [], { cwd: work, stdio: ['pipe', 'pipe', 'pipe'] })
   const exited = new Promise(resolveExit => child.once('exit', resolveExit))
   const result = await new Promise((resolvePromise, reject) => {
@@ -66,7 +64,7 @@ try {
     child.on('exit', code => {
       clearTimeout(timer)
       if (!stdout.includes('"id":1'))
-        reject(new Error(`pi-acp exited (code ${code}) before answering; stderr:\n${stderr}`))
+        reject(new Error(`pidea exited (code ${code}) before answering; stderr:\n${stderr}`))
     })
     child.stdin.write(
       JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: 1 } }) + '\n'

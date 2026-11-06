@@ -7,11 +7,11 @@ import { E2EClient } from './harness.js'
 import type { ClientCapabilities } from '@agentclientprotocol/sdk'
 
 async function systemPromptWith(clientCapabilities: ClientCapabilities): Promise<string> {
-  const dir = mkdtempSync(join(tmpdir(), 'pi-acp-hints-'))
+  const dir = mkdtempSync(join(tmpdir(), 'pidea-hints-'))
   const capture = join(dir, 'requests.jsonl')
   const c = E2EClient.start({
     clientCapabilities,
-    env: { PI_ACP_E2E_CAPTURE: capture },
+    env: { PIDEA_E2E_CAPTURE: capture },
     script: { responses: [{ content: [{ text: 'ok' }] }] }
   })
   try {

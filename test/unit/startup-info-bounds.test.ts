@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { buildStartupInfo } from '../../src/acp/agent.js'
 
 test('buildStartupInfo bounds the skill inventory and survives symlink cycles (P2-12 audit)', () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'pi-acp-inv-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'pidea-inv-'))
   const skillsRoot = join(cwd, '.pi', 'skills')
   for (let i = 0; i < 400; i++) {
     const d = join(skillsRoot, `skill-${i}`)

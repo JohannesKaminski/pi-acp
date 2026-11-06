@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 import { SessionStore } from '../../src/acp/session-store.js'
 import { FakeAgentSideConnection, asAgentConn } from '../helpers/fakes.js'
 
@@ -21,9 +21,9 @@ class FakeSessions {
   }
 }
 
-test('PiAcpAgent: newSession returns AUTH_REQUIRED when pi reports an auth error after spawn', async () => {
+test('PideaAgent: newSession returns AUTH_REQUIRED when pi reports an auth error after spawn', async () => {
   const conn = new FakeAgentSideConnection()
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp-runtime-auth-'))
+  const root = mkdtempSync(join(tmpdir(), 'pidea-runtime-auth-'))
   const sessionFile = join(root, 'sessions', 'failed.jsonl')
   const sessionMapPath = join(root, 'session-map.json')
 
@@ -56,7 +56,7 @@ test('PiAcpAgent: newSession returns AUTH_REQUIRED when pi reports an auth error
   const sessions = new FakeSessions(session)
   const store = new SessionStore(sessionMapPath)
   store.upsert({ sessionId: 's-auth', cwd: process.cwd(), sessionFile })
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
   ;(agent as any).sessions = sessions as any
   ;(agent as any).store = store as any
 
@@ -70,7 +70,7 @@ test('PiAcpAgent: newSession returns AUTH_REQUIRED when pi reports an auth error
   assert.equal(store.get('s-auth'), null)
 })
 
-test('PiAcpAgent: newSession returns Internal error on non-auth model probe failures after spawn', async () => {
+test('PideaAgent: newSession returns Internal error on non-auth model probe failures after spawn', async () => {
   const conn = new FakeAgentSideConnection()
 
   const session = {
@@ -87,7 +87,7 @@ test('PiAcpAgent: newSession returns Internal error on non-auth model probe fail
   }
 
   const sessions = new FakeSessions(session)
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
   ;(agent as any).sessions = sessions as any
 
   await assert.rejects(
@@ -99,8 +99,8 @@ test('PiAcpAgent: newSession returns Internal error on non-auth model probe fail
 })
 
 for (const failure of ['discovery', 'auth', 'invalid-current', 'inconsistent-current', 'state']) {
-  test(`PiAcpAgent: cleans up only the new session after ${failure} configuration failure`, async t => {
-    const root = mkdtempSync(join(tmpdir(), 'pi-acp-thinking-failure-'))
+  test(`PideaAgent: cleans up only the new session after ${failure} configuration failure`, async t => {
+    const root = mkdtempSync(join(tmpdir(), 'pidea-thinking-failure-'))
     t.after(() => rmSync(root, { recursive: true, force: true }))
     const sessionFile = join(root, 'failed.jsonl')
     const existingFile = join(root, 'existing.jsonl')
@@ -132,7 +132,7 @@ for (const failure of ['discovery', 'auth', 'invalid-current', 'inconsistent-cur
     }
     const sessions = new FakeSessions(session)
     const conn = new FakeAgentSideConnection()
-    const agent = new PiAcpAgent(asAgentConn(conn))
+    const agent = new PideaAgent(asAgentConn(conn))
     Reflect.set(agent, 'sessions', sessions)
     Reflect.set(agent, 'store', store)
     await assert.rejects(agent.newSession({ cwd: root, mcpServers: [] }), {

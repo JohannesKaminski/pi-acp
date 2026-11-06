@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 import { SmokeHarness, assert } from './lib/acp-smoke.mjs'
 
 const fixturePath = fileURLToPath(new URL('./fixtures/fake-mcp-inspect.mjs', import.meta.url))
-const work = mkdtempSync(join(tmpdir(), 'pi-acp-ide-inspect-'))
+const work = mkdtempSync(join(tmpdir(), 'pidea-ide-inspect-'))
 const logPath = join(work, 'server.log')
 const repo = join(work, 'repo')
 
@@ -55,7 +55,7 @@ writeFileSync(
   'import com.intellij.psi.*\n\n// Flags declared \'any\' types (annotations, parameters, generics) but allows\n// `as any` casts on untyped external data, per AGENTS.md.\nval declaredAnyInspection = localInspection { psiFile, inspection ->\n    psiFile.descendants()\n        .filter { it.text == "any" && it.javaClass.simpleName != "LeafPsiElement" }\n        .filter { node ->\n            node.parents(withSelf = false).none { p -> p.javaClass.simpleName == "TypeScriptAsExpressionImpl" }\n        }\n        .forEach { inspection.registerProblem(it, "Avoid declaring \'any\' — use an explicit type or unknown") }\n}\n\nlistOf(\n    InspectionKts(\n        id = "no-declared-any-ts",\n        localTool = declaredAnyInspection,\n        name = "No declared any in TypeScript",\n        htmlDescription = "Avoid declared \'any\' types; \'as any\' casts for untyped external data are allowed.",\n        level = HighlightDisplayLevel.WARNING\n    )\n)\n'
 )
 
-const h = new SmokeHarness({ env: { PI_ACP_DEBUG_BRIDGE: '1', FAKE_MCP_LOG: logPath } }).start()
+const h = new SmokeHarness({ env: { PIDEA_DEBUG_BRIDGE: '1', FAKE_MCP_LOG: logPath } }).start()
 try {
   await h.expectResult(1, 'initialize', { protocolVersion: 1 })
   const created = await h.expectResult(
@@ -117,8 +117,8 @@ try {
 
   // Outcome recorded in PromptResponse._meta.
   assert(
-    r?._meta?.piAcp?.inspection?.status === 'inspected',
-    `inspection _meta status=${r?._meta?.piAcp?.inspection?.status}`
+    r?._meta?.pidea?.inspection?.status === 'inspected',
+    `inspection _meta status=${r?._meta?.pidea?.inspection?.status}`
   )
 
   // Summary surfaced as an agent_message_chunk.

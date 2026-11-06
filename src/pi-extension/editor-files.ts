@@ -1,5 +1,5 @@
 /**
- * Bundled pi extension for ACP editor file access (pi-acp).
+ * Bundled pi extension for ACP editor file access (pidea).
  *
  * Re-registers pi's built-in read, edit and write tools with the same behavior but
  * swappable file I/O. In `disk` mode (the default) they use the local file system,
@@ -76,7 +76,7 @@ export default function editorFilesExtension(pi: ExtensionAPI): void {
   let mode: FileAccessMode = 'disk'
 
   pi.registerCommand(FILE_ACCESS_COMMAND, {
-    description: 'pi-acp internal: set file access for read/edit/write (disk | editor)',
+    description: 'pidea internal: set file access for read/edit/write (disk | editor)',
     handler: async args => {
       mode = parseFileAccessMode(args) ?? mode
     }

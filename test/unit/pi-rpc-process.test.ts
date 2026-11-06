@@ -13,7 +13,7 @@ async function waitUntil(predicate: () => boolean, timeoutMs = 3_000): Promise<v
 }
 
 test('PiRpcProcess: silent RPC requests reject at the configured deadline', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pi-acp-silent-rpc-'))
+  const dir = mkdtempSync(join(tmpdir(), 'pidea-silent-rpc-'))
   const executable = writeNodeExecutable(dir, 'silent-pi', 'process.stdin.resume()\n')
 
   const startedAt = Date.now()
@@ -27,7 +27,7 @@ test('PiRpcProcess: silent RPC requests reject at the configured deadline', asyn
 })
 
 test('PiRpcProcess retains a stderr tail for diagnostics (P1-3 audit)', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pi-acp-stderr-'))
+  const dir = mkdtempSync(join(tmpdir(), 'pidea-stderr-'))
   const executable = writeNodeExecutable(
     dir,
     'noisy-pi',
@@ -43,7 +43,7 @@ test('PiRpcProcess retains a stderr tail for diagnostics (P1-3 audit)', async ()
 })
 
 test('PiRpcProcess stderr tail is bounded', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pi-acp-stderr-'))
+  const dir = mkdtempSync(join(tmpdir(), 'pidea-stderr-'))
   const body = Array.from({ length: 300 }, (_, i) => `process.stderr.write('line ${i}\\n')`).join('\n')
   const executable = writeNodeExecutable(dir, 'noisy-pi', `${body}\nprocess.stdin.resume()\n`)
 
@@ -59,7 +59,7 @@ test('PiRpcProcess stderr tail is bounded', async () => {
 })
 
 test('PiRpcProcess: talking to a pi that exited reports its exit status and stderr, not a stream error', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pi-acp-exits-'))
+  const dir = mkdtempSync(join(tmpdir(), 'pidea-exits-'))
   const executable = writeNodeExecutable(
     dir,
     'crashing-pi',

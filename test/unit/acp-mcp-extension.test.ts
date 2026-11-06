@@ -134,8 +134,8 @@ it('dedupes factory activation and permits reactivation after session shutdown',
   const sockets: FakeSocket[] = []
   const registeredTools: string[] = []
   const shutdownHandlers: Array<() => void> = []
-  const prevMode = process.env.PI_ACP_IDE_MODE
-  delete process.env.PI_ACP_IDE_MODE
+  const prevMode = process.env.PIDEA_IDE_MODE
+  delete process.env.PIDEA_IDE_MODE
   // noinspection JSUnusedGlobalSymbols
   const pi = {
     on(event: string, handler: () => void) {
@@ -147,7 +147,7 @@ it('dedupes factory activation and permits reactivation after session shutdown',
   }
   const makeExtension = () =>
     createAcpMcpBridgeExtension({
-      endpoint: '/tmp/pi-acp-test.sock',
+      endpoint: '/tmp/pidea-test.sock',
       token: 'test-token',
       sessionId: 'test-session',
       instanceScope: scope,
@@ -187,8 +187,8 @@ it('dedupes factory activation and permits reactivation after session shutdown',
   shutdownHandlers[0]()
   makeExtension()(pi as never)
   assert.equal(sockets.length, 2)
-  if (prevMode === undefined) delete process.env.PI_ACP_IDE_MODE
-  else process.env.PI_ACP_IDE_MODE = prevMode
+  if (prevMode === undefined) delete process.env.PIDEA_IDE_MODE
+  else process.env.PIDEA_IDE_MODE = prevMode
 })
 
 describe('ACP MCP Pi extension lifecycle', () => {
@@ -345,9 +345,9 @@ function wireExtension(
 ) {
   const rt = makeFakeRuntime(initialActive, opts)
   const socket = new FakeIdeSocket()
-  const prevMode = process.env.PI_ACP_IDE_MODE
-  if (mode === undefined) delete process.env.PI_ACP_IDE_MODE
-  else process.env.PI_ACP_IDE_MODE = mode
+  const prevMode = process.env.PIDEA_IDE_MODE
+  if (mode === undefined) delete process.env.PIDEA_IDE_MODE
+  else process.env.PIDEA_IDE_MODE = mode
   const ext = createAcpMcpBridgeExtension({
     endpoint: '/tmp/test.sock',
     token: 't',
@@ -356,8 +356,8 @@ function wireExtension(
     connect: () => socket as unknown as Socket
   })
   ext(rt.pi)
-  if (prevMode === undefined) delete process.env.PI_ACP_IDE_MODE
-  else process.env.PI_ACP_IDE_MODE = prevMode
+  if (prevMode === undefined) delete process.env.PIDEA_IDE_MODE
+  else process.env.PIDEA_IDE_MODE = prevMode
   socket.emit('connect')
   const emitCatalog = () =>
     socket.emit(
@@ -790,15 +790,15 @@ describe('IntelliJ-first coding mode policy', () => {
   })
 
   it('required without credentials does not throw on shutdown', () => {
-    const prevMode = process.env.PI_ACP_IDE_MODE
-    process.env.PI_ACP_IDE_MODE = 'required'
+    const prevMode = process.env.PIDEA_IDE_MODE
+    process.env.PIDEA_IDE_MODE = 'required'
     const rt = makeFakeRuntime()
     const ext = createAcpMcpBridgeExtension({ instanceScope: {} })
     try {
       ext(rt.pi)
     } finally {
-      if (prevMode === undefined) delete process.env.PI_ACP_IDE_MODE
-      else process.env.PI_ACP_IDE_MODE = prevMode
+      if (prevMode === undefined) delete process.env.PIDEA_IDE_MODE
+      else process.env.PIDEA_IDE_MODE = prevMode
     }
     const natives = ['read', 'edit', 'write', 'grep', 'find', 'ls']
     assert.deepEqual(
@@ -1124,7 +1124,7 @@ describe('IntelliJ-first coding mode policy', () => {
   it('surfaces invalid-mode diagnostics in guidance', async () => {
     const { guidance } = await guidanceFor('garbage', FULL_CATALOG, false)
     assert.ok(guidance)
-    assert.match(guidance.systemPrompt, /invalid PI_ACP_IDE_MODE/)
+    assert.match(guidance.systemPrompt, /invalid PIDEA_IDE_MODE/)
   })
   it('decodes octal escapes in quoted diff headers', () => {
     const patch = ['--- "a/caf\\303\\251.ts"', '+++ "b/caf\\303\\251.ts"'].join('\n')

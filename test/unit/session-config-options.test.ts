@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 import { FakeAgentSideConnection, asAgentConn } from '../helpers/fakes.js'
 
 // noinspection JSUnusedGlobalSymbols
@@ -24,7 +24,7 @@ class FakeSessions {
   }
 }
 
-test('PiAcpAgent: newSession returns configOptions for model and thinking selectors', async () => {
+test('PideaAgent: newSession returns configOptions for model and thinking selectors', async () => {
   const realSetTimeout = globalThis.setTimeout
   ;(globalThis as any).setTimeout = () => 0 as any
 
@@ -57,7 +57,7 @@ test('PiAcpAgent: newSession returns configOptions for model and thinking select
       sendStartupInfoIfPending() {}
     }
 
-    const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+    const agent = new PideaAgent(asAgentConn(conn), {} as any)
     ;(agent as any).sessions = new FakeSessions(session) as any
 
     const result = await agent.newSession({ cwd: process.cwd(), mcpServers: [] } as any)
@@ -100,7 +100,7 @@ test('PiAcpAgent: newSession returns configOptions for model and thinking select
   }
 })
 
-test('PiAcpAgent: setSessionConfigOption maps model changes to pi and emits config_option_update', async () => {
+test('PideaAgent: setSessionConfigOption maps model changes to pi and emits config_option_update', async () => {
   const conn = new FakeAgentSideConnection()
   const state = {
     thinkingLevel: 'medium',
@@ -136,7 +136,7 @@ test('PiAcpAgent: setSessionConfigOption maps model changes to pi and emits conf
     }
   }
 
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
   ;(agent as any).sessions = new FakeSessions(session) as any
 
   const result = await agent.setSessionConfigOption({
@@ -158,7 +158,7 @@ test('PiAcpAgent: setSessionConfigOption maps model changes to pi and emits conf
   ])
 })
 
-test('PiAcpAgent: setSessionConfigOption maps thought level changes to pi and emits sync updates', async () => {
+test('PideaAgent: setSessionConfigOption maps thought level changes to pi and emits sync updates', async () => {
   const conn = new FakeAgentSideConnection()
   const state = {
     thinkingLevel: 'medium',
@@ -189,7 +189,7 @@ test('PiAcpAgent: setSessionConfigOption maps thought level changes to pi and em
     }
   }
 
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
   ;(agent as any).sessions = new FakeSessions(session) as any
 
   const result = await agent.setSessionConfigOption({

@@ -39,7 +39,7 @@ export function sessionStatsToAcpUsage(stats: unknown): Usage | null {
   if (cacheWrite !== undefined) usage.cachedWriteTokens = cacheWrite
 
   const cost = num(raw.cost)
-  if (cost !== undefined) usage._meta = { piAcp: { cost } }
+  if (cost !== undefined) usage._meta = { pidea: { cost } }
 
   return usage
 }

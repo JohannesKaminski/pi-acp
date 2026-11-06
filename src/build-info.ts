@@ -1,11 +1,11 @@
 // Build identity for the running adapter bundle.
-// Release builds inject __PI_ACP_BUILD_REVISION__ / __PI_ACP_BUILD_TIME__ via
+// Release builds inject __PIDEA_BUILD_REVISION__ / __PIDEA_BUILD_TIME__ via
 // tsup `define`; dev (tsx) and test runtimes fall back to git and the nearest
 // package.json so the shape is always populated.
 
-declare const __PI_ACP_BUILD_REVISION__: string | undefined
-declare const __PI_ACP_BUILD_TIME__: string | undefined
-declare const __PI_ACP_BUILD_DIRTY__: string | undefined
+declare const __PIDEA_BUILD_REVISION__: string | undefined
+declare const __PIDEA_BUILD_TIME__: string | undefined
+declare const __PIDEA_BUILD_DIRTY__: string | undefined
 
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
@@ -53,11 +53,11 @@ function nearestPackageJsonVersion(): string {
 
 export const buildInfo: BuildInfo = {
   revision:
-    typeof __PI_ACP_BUILD_REVISION__ === 'string' && __PI_ACP_BUILD_REVISION__
-      ? __PI_ACP_BUILD_REVISION__
+    typeof __PIDEA_BUILD_REVISION__ === 'string' && __PIDEA_BUILD_REVISION__
+      ? __PIDEA_BUILD_REVISION__
       : gitShortRevision(),
-  buildTime: typeof __PI_ACP_BUILD_TIME__ === 'string' ? __PI_ACP_BUILD_TIME__ : '',
+  buildTime: typeof __PIDEA_BUILD_TIME__ === 'string' ? __PIDEA_BUILD_TIME__ : '',
   packageVersion: nearestPackageJsonVersion(),
-  isRelease: typeof __PI_ACP_BUILD_REVISION__ === 'string',
-  dirty: typeof __PI_ACP_BUILD_DIRTY__ === 'string' ? __PI_ACP_BUILD_DIRTY__ === 'true' : false
+  isRelease: typeof __PIDEA_BUILD_REVISION__ === 'string',
+  dirty: typeof __PIDEA_BUILD_DIRTY__ === 'string' ? __PIDEA_BUILD_DIRTY__ === 'true' : false
 }

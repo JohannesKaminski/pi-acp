@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 import { FakeAgentSideConnection, asAgentConn } from '../helpers/fakes.js'
 
 async function withPiAgentDir(root: string, fn: () => Promise<void>): Promise<void> {
@@ -17,8 +17,8 @@ async function withPiAgentDir(root: string, fn: () => Promise<void>): Promise<vo
   }
 }
 
-test('PiAcpAgent: deleteSession removes stored session and session file', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp-delete-test-'))
+test('PideaAgent: deleteSession removes stored session and session file', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'pidea-delete-test-'))
   const sessionsDir = join(root, 'sessions', '--tmp--delete-project--')
   const sessionFile = join(sessionsDir, '0000_delete_me.jsonl')
   mkdirSync(sessionsDir, { recursive: true })
@@ -30,7 +30,7 @@ test('PiAcpAgent: deleteSession removes stored session and session file', async 
 
   await withPiAgentDir(root, async () => {
     const conn = new FakeAgentSideConnection()
-    const agent = new PiAcpAgent(asAgentConn(conn))
+    const agent = new PideaAgent(asAgentConn(conn))
 
     const storedSessionId = 'stored-session'
     const storeDeletes: string[] = []
@@ -54,8 +54,8 @@ test('PiAcpAgent: deleteSession removes stored session and session file', async 
   })
 })
 
-test('PiAcpAgent: deleteSession finds session via pi discovery when SessionStore misses', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp-delete-discovery-'))
+test('PideaAgent: deleteSession finds session via pi discovery when SessionStore misses', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'pidea-delete-discovery-'))
   const sessionsDir = join(root, 'sessions', '--tmp--delete-discovery--')
   const sessionFile = join(sessionsDir, '0000_pi_discovery.jsonl')
   mkdirSync(sessionsDir, { recursive: true })
@@ -73,7 +73,7 @@ test('PiAcpAgent: deleteSession finds session via pi discovery when SessionStore
 
   await withPiAgentDir(root, async () => {
     const conn = new FakeAgentSideConnection()
-    const agent = new PiAcpAgent(asAgentConn(conn))
+    const agent = new PideaAgent(asAgentConn(conn))
 
     const storeDeletes: string[] = []
 
@@ -94,14 +94,14 @@ test('PiAcpAgent: deleteSession finds session via pi discovery when SessionStore
   })
 })
 
-test('PiAcpAgent: deleteSession succeeds idempotently for unknown sessionId', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp-delete-unknown-'))
+test('PideaAgent: deleteSession succeeds idempotently for unknown sessionId', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'pidea-delete-unknown-'))
   const sessionsDir = join(root, 'sessions', '--tmp--delete-unknown--')
   mkdirSync(sessionsDir, { recursive: true })
 
   await withPiAgentDir(root, async () => {
     const conn = new FakeAgentSideConnection()
-    const agent = new PiAcpAgent(asAgentConn(conn))
+    const agent = new PideaAgent(asAgentConn(conn))
 
     // Per ACP session/delete semantics, deleting a non-existent session
     // should succeed idempotently (return {} without error).
@@ -122,15 +122,15 @@ test('PiAcpAgent: deleteSession succeeds idempotently for unknown sessionId', as
   })
 })
 
-test('PiAcpAgent: deleteSession survives missing session file', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp-delete-missingfile-'))
+test('PideaAgent: deleteSession survives missing session file', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'pidea-delete-missingfile-'))
   const sessionsDir = join(root, 'sessions', '--tmp--delete-missingfile--')
   mkdirSync(sessionsDir, { recursive: true })
   const nonExistentFile = join(sessionsDir, '0000_non_existent.jsonl')
 
   await withPiAgentDir(root, async () => {
     const conn = new FakeAgentSideConnection()
-    const agent = new PiAcpAgent(asAgentConn(conn))
+    const agent = new PideaAgent(asAgentConn(conn))
 
     const storeDeletes: string[] = []
 

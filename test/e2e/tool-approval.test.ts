@@ -98,9 +98,9 @@ test('e2e: "always allow" stops asking about that tool for the rest of the sessi
   }
 })
 
-test('e2e: PI_ACP_TOOL_APPROVAL sets the default mode for new sessions', async () => {
+test('e2e: PIDEA_TOOL_APPROVAL sets the default mode for new sessions', async () => {
   const c = E2EClient.start({
-    env: { PI_ACP_TOOL_APPROVAL: 'edits' },
+    env: { PIDEA_TOOL_APPROVAL: 'edits' },
     script: {
       responses: [{ content: [{ tool: 'bash', args: { command: 'echo x' } }] }, { content: [{ text: 'ok' }] }]
     }

@@ -54,6 +54,6 @@ function terminalAuthLaunchSpec(): { command: string; args: string[] } {
     }
   }
 
-  // Fallback: assume `pi-acp` is on PATH.
-  return { command: 'pi-acp', args: ['--terminal-login'] }
+  // Fallback: assume `pidea` is on PATH.
+  return { command: 'pidea', args: ['--terminal-login'] }
 }

@@ -1,9 +1,9 @@
 /**
- * Bundled pi extension for ACP client hints (pi-acp).
+ * Bundled pi extension for ACP client hints (pidea).
  *
  * Tells the model about client abilities that change how it should write, such as the
  * client rendering Mermaid diagrams. The adapter derives the hints from the client's
- * `initialize` capabilities and passes them in PI_ACP_CLIENT_HINTS (comma-separated);
+ * `initialize` capabilities and passes them in PIDEA_CLIENT_HINTS (comma-separated);
  * this extension appends the matching guidance to the system prompt before each turn.
  *
  * Self-contained on purpose (no runtime imports): pi loads it from dist/ in real use
@@ -11,7 +11,7 @@
  */
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
 
-export const CLIENT_HINTS_ENV = 'PI_ACP_CLIENT_HINTS'
+export const CLIENT_HINTS_ENV = 'PIDEA_CLIENT_HINTS'
 
 export type ClientHint = 'mermaid'
 

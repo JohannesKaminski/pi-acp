@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { PiAcpSession } from '../../src/acp/session.js'
+import { PideaSession } from '../../src/acp/session.js'
 import { FakeAgentSideConnection, FakePiRpcProcess, asAgentConn, type FakePiEvent } from '../helpers/fakes.js'
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0))
@@ -16,7 +16,7 @@ function makeSession(
   fileCommands: Array<{ name: string; description: string; content: string; source: string }> = [],
   clientCapabilities: ClientCapabilities = {}
 ) {
-  return new PiAcpSession({
+  return new PideaSession({
     sessionId: 's1',
     cwd,
     mcpServers: [],
@@ -35,7 +35,7 @@ function assertToolCall(conn: FakeAgentSideConnection, locations: Array<{ path: 
   assert.deepEqual((conn.updates[0]!.update as any).locations, locations)
 }
 
-test('PiAcpSession: emits agent_message_chunk for text_delta', async () => {
+test('PideaSession: emits agent_message_chunk for text_delta', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -56,7 +56,7 @@ test('PiAcpSession: emits agent_message_chunk for text_delta', async () => {
   })
 })
 
-test('PiAcpSession: emits agent_thought_chunk for thinking_delta', async () => {
+test('PideaSession: emits agent_thought_chunk for thinking_delta', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -77,7 +77,7 @@ test('PiAcpSession: emits agent_thought_chunk for thinking_delta', async () => {
   })
 })
 
-test('PiAcpSession: emits tool_call + tool_call_update + completes', async () => {
+test('PideaSession: emits tool_call + tool_call_update + completes', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -133,7 +133,7 @@ test('PiAcpSession: emits tool_call + tool_call_update + completes', async () =>
   assert.equal((conn.updates[2]!.update as any).rawOutput, undefined)
 })
 
-test('PiAcpSession: emits tool locations from pi path args', async () => {
+test('PideaSession: emits tool locations from pi path args', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -150,7 +150,7 @@ test('PiAcpSession: emits tool locations from pi path args', async () => {
   ])
 })
 
-test('PiAcpSession: handles extension select via ACP permission request', async () => {
+test('PideaSession: handles extension select via ACP permission request', async () => {
   const conn = new FakeAgentSideConnection()
   conn.nextPermissionResponse = { outcome: { outcome: 'selected', optionId: 'choice-1' } }
   const proc = new FakePiRpcProcess()
@@ -185,7 +185,7 @@ test('PiAcpSession: handles extension select via ACP permission request', async 
   assert.deepEqual(proc.extensionUiResponses, [{ id: 'ui-1', value: 'Beta' }])
 })
 
-test('PiAcpSession: handles extension confirm via ACP permission request', async () => {
+test('PideaSession: handles extension confirm via ACP permission request', async () => {
   const conn = new FakeAgentSideConnection()
   conn.nextPermissionResponse = { outcome: { outcome: 'selected', optionId: 'no' } }
   const proc = new FakePiRpcProcess()
@@ -210,7 +210,7 @@ test('PiAcpSession: handles extension confirm via ACP permission request', async
   assert.deepEqual(proc.extensionUiResponses, [{ id: 'ui-2', confirmed: false }])
 })
 
-test('PiAcpSession: sends cancelled response when ACP confirm is cancelled', async () => {
+test('PideaSession: sends cancelled response when ACP confirm is cancelled', async () => {
   const conn = new FakeAgentSideConnection()
   conn.nextPermissionResponse = { outcome: { outcome: 'cancelled' } }
   const proc = new FakePiRpcProcess()
@@ -224,7 +224,7 @@ test('PiAcpSession: sends cancelled response when ACP confirm is cancelled', asy
   assert.deepEqual(proc.extensionUiResponses, [{ id: 'ui-5', cancelled: true }])
 })
 
-test('PiAcpSession: routes input through elicitation and cancels editor with a visible fallback', async () => {
+test('PideaSession: routes input through elicitation and cancels editor with a visible fallback', async () => {
   const conn = new FakeAgentSideConnection()
   conn.nextElicitationResponse = { action: 'cancel' }
   const proc = new FakePiRpcProcess()
@@ -246,7 +246,7 @@ test('PiAcpSession: routes input through elicitation and cancels editor with a v
   assert.match((conn.updates[0]!.update as any).content.text, /editor UI request is not supported/)
 })
 
-test('PiAcpSession: emits agent_message_chunk for auto_retry_start with attempt/maxAttempts and rounded delay', async () => {
+test('PideaSession: emits agent_message_chunk for auto_retry_start with attempt/maxAttempts and rounded delay', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -263,7 +263,7 @@ test('PiAcpSession: emits agent_message_chunk for auto_retry_start with attempt/
   })
 })
 
-test('PiAcpSession: formats a positive sub-second auto_retry_start delay as waiting 1s', async () => {
+test('PideaSession: formats a positive sub-second auto_retry_start delay as waiting 1s', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -280,7 +280,7 @@ test('PiAcpSession: formats a positive sub-second auto_retry_start delay as wait
   })
 })
 
-test('PiAcpSession: falls back to a generic retry message when auto_retry_start fields are missing or malformed', async () => {
+test('PideaSession: falls back to a generic retry message when auto_retry_start fields are missing or malformed', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -297,7 +297,7 @@ test('PiAcpSession: falls back to a generic retry message when auto_retry_start 
   })
 })
 
-test('PiAcpSession: omits raw errorMessage content from surfaced auto_retry_start status text', async () => {
+test('PideaSession: omits raw errorMessage content from surfaced auto_retry_start status text', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -319,7 +319,7 @@ test('PiAcpSession: omits raw errorMessage content from surfaced auto_retry_star
   assert.equal((conn.updates[0]!.update as any).content.text.includes('provider overloaded'), false)
 })
 
-test('PiAcpSession: emits agent_message_chunk for auto_retry_end', async () => {
+test('PideaSession: emits agent_message_chunk for auto_retry_end', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -383,7 +383,7 @@ const COMPACTION_NOTICES: Array<{ name: string; events: FakePiEvent[]; texts: st
 ]
 
 for (const { name, events, texts } of COMPACTION_NOTICES) {
-  test(`PiAcpSession: compaction notices for ${name}`, async () => {
+  test(`PideaSession: compaction notices for ${name}`, async () => {
     const conn = new FakeAgentSideConnection()
     const proc = new FakePiRpcProcess()
 
@@ -398,7 +398,7 @@ for (const { name, events, texts } of COMPACTION_NOTICES) {
   })
 }
 
-test('PiAcpSession: preserves ordering when auto_retry_start is interleaved with text_delta events', async () => {
+test('PideaSession: preserves ordering when auto_retry_start is interleaved with text_delta events', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -423,7 +423,7 @@ test('PiAcpSession: preserves ordering when auto_retry_start is interleaved with
   )
 })
 
-test('PiAcpSession: emits streamed tool locations from pi path args', async () => {
+test('PideaSession: emits streamed tool locations from pi path args', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -448,10 +448,10 @@ test('PiAcpSession: emits streamed tool locations from pi path args', async () =
   assert.deepEqual((conn.updates[0]!.update as any).locations, [{ path: '/tmp/test.txt' }])
 })
 
-test('PiAcpSession: emits edit tool line when oldText matches uniquely', async () => {
+test('PideaSession: emits edit tool line when oldText matches uniquely', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
-  const cwd = mkdtempSync(join(tmpdir(), 'pi-acp-lines-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'pidea-lines-'))
   const filePath = join(cwd, 'a.txt')
 
   mkdirSync(cwd, { recursive: true })
@@ -471,10 +471,10 @@ test('PiAcpSession: emits edit tool line when oldText matches uniquely', async (
   assertToolCall(conn, [{ path: filePath, line: 3 }])
 })
 
-test('PiAcpSession: emits edit tool line from edits array when oldText matches uniquely', async () => {
+test('PideaSession: emits edit tool line from edits array when oldText matches uniquely', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
-  const cwd = mkdtempSync(join(tmpdir(), 'pi-acp-lines-edits-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'pidea-lines-edits-'))
   const filePath = join(cwd, 'a.txt')
 
   mkdirSync(cwd, { recursive: true })
@@ -494,10 +494,10 @@ test('PiAcpSession: emits edit tool line from edits array when oldText matches u
   assertToolCall(conn, [{ path: filePath, line: 3 }])
 })
 
-test('PiAcpSession: emits edit tool line from stringified edits array', async () => {
+test('PideaSession: emits edit tool line from stringified edits array', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
-  const cwd = mkdtempSync(join(tmpdir(), 'pi-acp-lines-edits-string-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'pidea-lines-edits-string-'))
   const filePath = join(cwd, 'a.txt')
 
   mkdirSync(cwd, { recursive: true })
@@ -517,10 +517,10 @@ test('PiAcpSession: emits edit tool line from stringified edits array', async ()
   assertToolCall(conn, [{ path: filePath, line: 3 }])
 })
 
-test('PiAcpSession: omits edit tool line when oldText matches multiple times', async () => {
+test('PideaSession: omits edit tool line when oldText matches multiple times', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
-  const cwd = mkdtempSync(join(tmpdir(), 'pi-acp-lines-dup-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'pidea-lines-dup-'))
   const filePath = join(cwd, 'a.txt')
 
   mkdirSync(cwd, { recursive: true })
@@ -540,7 +540,7 @@ test('PiAcpSession: omits edit tool line when oldText matches multiple times', a
   assertToolCall(conn, [{ path: filePath }])
 })
 
-test('PiAcpSession: prompt stays open through retry runs until agent_settled', async () => {
+test('PideaSession: prompt stays open through retry runs until agent_settled', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -569,7 +569,7 @@ test('PiAcpSession: prompt stays open through retry runs until agent_settled', a
   assert.equal(reason, 'end_turn')
 })
 
-test('PiAcpSession: does not re-emit startup info on first prompt after it was already sent', async () => {
+test('PideaSession: does not re-emit startup info on first prompt after it was already sent', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -603,7 +603,7 @@ test('PiAcpSession: does not re-emit startup info on first prompt after it was a
   assert.equal(reason, 'end_turn')
 })
 
-test('PiAcpSession: cancel flips stopReason to cancelled', async () => {
+test('PideaSession: cancel flips stopReason to cancelled', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -621,7 +621,7 @@ test('PiAcpSession: cancel flips stopReason to cancelled', async () => {
   assert.equal(reason, 'cancelled')
 })
 
-test('PiAcpSession: queues concurrent prompt and starts it after agent_settled', async () => {
+test('PideaSession: queues concurrent prompt and starts it after agent_settled', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -653,7 +653,7 @@ test('PiAcpSession: queues concurrent prompt and starts it after agent_settled',
   assert.equal(r2, 'end_turn')
 })
 
-test('PiAcpSession: cancel clears queued prompts', async () => {
+test('PideaSession: cancel clears queued prompts', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -677,7 +677,7 @@ test('PiAcpSession: cancel clears queued prompts', async () => {
   assert.equal(r2, 'cancelled')
 })
 
-test('PiAcpSession: expands /command before sending to pi', async () => {
+test('PideaSession: expands /command before sending to pi', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -698,7 +698,7 @@ test('PiAcpSession: expands /command before sending to pi', async () => {
   assert.equal(reason, 'end_turn')
 })
 
-test('PiAcpSession: tags extension notify chunks with severity in _meta', async () => {
+test('PideaSession: tags extension notify chunks with severity in _meta', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -718,12 +718,12 @@ test('PiAcpSession: tags extension notify chunks with severity in _meta', async 
   assert.deepEqual(conn.updates[0]!.update, {
     sessionUpdate: 'agent_message_chunk',
     content: { type: 'text', text: 'MCP: connection failed' },
-    _meta: { piAcp: { notify: { level: 'error' } } }
+    _meta: { pidea: { notify: { level: 'error' } } }
   })
   assert.deepEqual(proc.extensionUiResponses[0], { id: 'n1', cancelled: true })
 })
 
-test('PiAcpSession: defaults notify severity to info when notifyType is absent', async () => {
+test('PideaSession: defaults notify severity to info when notifyType is absent', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -740,10 +740,10 @@ test('PiAcpSession: defaults notify severity to info when notifyType is absent',
 
   assert.equal(conn.updates.length, 1)
   assert.deepEqual((conn.updates[0]!.update as any)._meta, {
-    piAcp: { notify: { level: 'info' } }
+    pidea: { notify: { level: 'info' } }
   })
 })
-test('PiAcpSession: handles extension input via ACP elicitation form (accept)', async () => {
+test('PideaSession: handles extension input via ACP elicitation form (accept)', async () => {
   const conn = new FakeAgentSideConnection()
   conn.nextElicitationResponse = { action: 'accept', content: { value: 'hello from user' } }
   const proc = new FakePiRpcProcess()
@@ -775,7 +775,7 @@ test('PiAcpSession: handles extension input via ACP elicitation form (accept)', 
   assert.deepEqual(proc.extensionUiResponses, [{ id: 'ui-in-1', value: 'hello from user' }])
 })
 
-test('PiAcpSession: handles extension input declined or cancelled by the user', async () => {
+test('PideaSession: handles extension input declined or cancelled by the user', async () => {
   const conn = new FakeAgentSideConnection()
   conn.nextElicitationResponse = { action: 'decline' }
   const proc = new FakePiRpcProcess()
@@ -789,7 +789,7 @@ test('PiAcpSession: handles extension input declined or cancelled by the user', 
   assert.deepEqual(proc.extensionUiResponses, [{ id: 'ui-in-2', cancelled: true }])
 })
 
-test('PiAcpSession: falls back to a visible cancellation when a declared elicitation request fails', async () => {
+test('PideaSession: falls back to a visible cancellation when a declared elicitation request fails', async () => {
   const conn = new FakeAgentSideConnection()
   conn.elicitationError = new Error('method not found')
   const proc = new FakePiRpcProcess()
@@ -805,7 +805,7 @@ test('PiAcpSession: falls back to a visible cancellation when a declared elicita
   assert.match(String((conn.updates[0]!.update as any).content.text), /not supported by this ACP client/)
 })
 
-test('PiAcpSession: keeps editor UI requests cancelled with a visible fallback', async () => {
+test('PideaSession: keeps editor UI requests cancelled with a visible fallback', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -818,7 +818,7 @@ test('PiAcpSession: keeps editor UI requests cancelled with a visible fallback',
   assert.deepEqual(proc.extensionUiResponses, [{ id: 'ui-ed-1', cancelled: true }])
 })
 
-test('PiAcpSession: emits usage_update from contextUsage before resolving prompt on agent_settled', async () => {
+test('PideaSession: emits usage_update from contextUsage before resolving prompt on agent_settled', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   proc.sessionStats = {
@@ -826,7 +826,7 @@ test('PiAcpSession: emits usage_update from contextUsage before resolving prompt
     contextUsage: { tokens: 12_345, contextWindow: 200_000 }
   }
 
-  const session = new PiAcpSession({
+  const session = new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -875,7 +875,7 @@ test('PiAcpSession: emits usage_update from contextUsage before resolving prompt
   )
 })
 
-test('PiAcpSession: skips usage_update when contextUsage tokens are null', async () => {
+test('PideaSession: skips usage_update when contextUsage tokens are null', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   proc.sessionStats = {
@@ -883,7 +883,7 @@ test('PiAcpSession: skips usage_update when contextUsage tokens are null', async
     contextUsage: { tokens: null, contextWindow: 200_000 }
   }
 
-  const session = new PiAcpSession({
+  const session = new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -902,7 +902,7 @@ test('PiAcpSession: skips usage_update when contextUsage tokens are null', async
   )
 })
 
-test('PiAcpSession: skips usage_update for invalid contextUsage values', async () => {
+test('PideaSession: skips usage_update for invalid contextUsage values', async () => {
   const invalid = [
     { name: 'missing contextUsage', contextUsage: undefined },
     { name: 'negative tokens', contextUsage: { tokens: -1, contextWindow: 100 } },
@@ -920,7 +920,7 @@ test('PiAcpSession: skips usage_update for invalid contextUsage values', async (
     const proc = new FakePiRpcProcess()
     proc.sessionStats = { contextUsage } as any
 
-    const session = new PiAcpSession({
+    const session = new PideaSession({
       sessionId: 's1',
       cwd: process.cwd(),
       mcpServers: [],
@@ -941,12 +941,12 @@ test('PiAcpSession: skips usage_update for invalid contextUsage values', async (
   }
 })
 
-test('PiAcpSession: get_session_stats rejection does not break the prompt', async () => {
+test('PideaSession: get_session_stats rejection does not break the prompt', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   proc.sessionStatsError = new Error('pi get_session_stats failed: unsupported')
 
-  const session = new PiAcpSession({
+  const session = new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -966,14 +966,14 @@ test('PiAcpSession: get_session_stats rejection does not break the prompt', asyn
   )
 })
 
-test('PiAcpSession: get_session_stats timeout does not block the prompt', async () => {
+test('PideaSession: get_session_stats timeout does not block the prompt', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   // The timeout lives in PiRpcProcess.request (see test/unit/pi-rpc-request-timeout.test.ts);
   // from the session's point of view it surfaces as a rejection.
   proc.sessionStatsError = new Error('pi get_session_stats timed out after 1000ms')
 
-  const session = new PiAcpSession({
+  const session = new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -993,12 +993,12 @@ test('PiAcpSession: get_session_stats timeout does not block the prompt', async 
   )
 })
 
-test('PiAcpSession: cancelled turn still reports cancelled after usage publish', async () => {
+test('PideaSession: cancelled turn still reports cancelled after usage publish', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   proc.sessionStats = { contextUsage: { tokens: 42, contextWindow: 100 } }
 
-  const session = new PiAcpSession({
+  const session = new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -1022,7 +1022,7 @@ function assistantEnd(stopReason: string, errorMessage?: string): FakePiEvent {
   return { type: 'message_end', message: { role: 'assistant', stopReason, errorMessage } as any }
 }
 
-test('PiAcpSession: only the last assistant message before agent_settled decides the stop reason', async () => {
+test('PideaSession: only the last assistant message before agent_settled decides the stop reason', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   const session = makeSession(conn, proc)
@@ -1036,7 +1036,7 @@ test('PiAcpSession: only the last assistant message before agent_settled decides
   assert.equal(await p, 'end_turn')
 })
 
-test('PiAcpSession: an error turn records lastError and does not leak into the next turn', async () => {
+test('PideaSession: an error turn records lastError and does not leak into the next turn', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   const session = makeSession(conn, proc)
@@ -1053,7 +1053,7 @@ test('PiAcpSession: an error turn records lastError and does not leak into the n
   assert.equal(await second, 'end_turn')
 })
 
-test('PiAcpSession: an error without a message still records a diagnostic', async () => {
+test('PideaSession: an error without a message still records a diagnostic', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   const session = makeSession(conn, proc)
@@ -1066,7 +1066,7 @@ test('PiAcpSession: an error without a message still records a diagnostic', asyn
   assert.equal(session.lastError, 'pi model request failed')
 })
 
-test('PiAcpSession: a client cancel wins over the final stop reason', async () => {
+test('PideaSession: a client cancel wins over the final stop reason', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   const session = makeSession(conn, proc)
@@ -1079,7 +1079,7 @@ test('PiAcpSession: a client cancel wins over the final stop reason', async () =
   assert.equal(await p, 'cancelled')
 })
 
-test('PiAcpSession: without the elicitation capability input is cancelled without calling the client', async () => {
+test('PideaSession: without the elicitation capability input is cancelled without calling the client', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
@@ -1093,7 +1093,7 @@ test('PiAcpSession: without the elicitation capability input is cancelled withou
   assert.match(String((conn.updates[0]!.update as any).content.text), /not supported by this ACP client/)
 })
 
-test('PiAcpSession: chunks of one pi assistant message share a messageId; the next message gets a new one', async () => {
+test('PideaSession: chunks of one pi assistant message share a messageId; the next message gets a new one', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   makeSession(conn, proc)

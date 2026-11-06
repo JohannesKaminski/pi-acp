@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { SmokeHarness, assert, matches } from './lib/acp-smoke.mjs'
 
 const fixturePath = fileURLToPath(new URL('./fixtures/fake-mcp-server.mjs', import.meta.url))
-const work = mkdtempSync(join(tmpdir(), 'pi-acp-mcp-fixture-'))
+const work = mkdtempSync(join(tmpdir(), 'pidea-mcp-fixture-'))
 const logPath = join(work, 'server.log')
 const secret = 'sk-sentinel-0123456789012345678901234567890123456789'
 
@@ -38,7 +38,7 @@ async function waitForLog(predicate, label, timeoutMs = 15_000) {
   throw new Error(`timed out waiting for ${label}`)
 }
 
-const h = new SmokeHarness({ env: { PI_ACP_DEBUG_BRIDGE: '1', FAKE_MCP_LOG: logPath } }).start()
+const h = new SmokeHarness({ env: { PIDEA_DEBUG_BRIDGE: '1', FAKE_MCP_LOG: logPath } }).start()
 try {
   await h.expectResult(1, 'initialize', { protocolVersion: 1 })
   const created = await h.expectResult(
@@ -64,7 +64,7 @@ try {
   const sessionId = created?.sessionId
   assert(typeof sessionId === 'string' && sessionId.length > 0, 'missing sessionId')
 
-  const startupInfo = created?._meta?.piAcp?.startupInfo ?? ''
+  const startupInfo = created?._meta?.pidea?.startupInfo ?? ''
   matches(startupInfo, /## IDE Tools/, 'startupInfo IDE Tools section')
   matches(startupInfo, /1 tool registered/, 'startupInfo reports the registered bridge tool')
   matches(startupInfo, /echo/, 'startupInfo lists the bridged tool')
@@ -91,7 +91,7 @@ try {
   await waitForLog(m => m?.type === 'call' && m.name === 'echo', 'tools/call invocation', 30_000)
 
   // F-028: the descriptor secret must never reach adapter stderr; env values
-  // must be redacted in the PI_ACP_DEBUG_BRIDGE dump.
+  // must be redacted in the PIDEA_DEBUG_BRIDGE dump.
   const stderr = h.stderr.join('\n')
   assert(!stderr.includes(secret), 'descriptor secret leaked to adapter stderr')
   assert(stderr.includes('[redacted '), 'descriptor env values not redacted in the debug dump')

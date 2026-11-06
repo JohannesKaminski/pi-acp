@@ -38,9 +38,9 @@ export default defineConfig({
   splitting: false,
   minify: false,
   define: {
-    __PI_ACP_BUILD_REVISION__: JSON.stringify(gitRevision()),
-    __PI_ACP_BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-    __PI_ACP_BUILD_DIRTY__: JSON.stringify(gitDirty())
+    __PIDEA_BUILD_REVISION__: JSON.stringify(gitRevision()),
+    __PIDEA_BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __PIDEA_BUILD_DIRTY__: JSON.stringify(gitDirty())
   },
   banner: {
     js: '#!/usr/bin/env node'

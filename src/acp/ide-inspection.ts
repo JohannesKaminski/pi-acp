@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { isAbsolute, join, relative } from 'node:path'
 
-const REPORT_SCHEMA = 'pi-acp.ide-inspection.v1'
+const REPORT_SCHEMA = 'pidea.ide-inspection.v1'
 const DEFAULT_MAX_FILES = 200
 const DEFAULT_TIMEOUT_MS = 30_000
 const EXCLUDED_PREFIXES = ['node_modules/', 'dist/', '.git/', '.pi/', 'inspections/'] as const
@@ -28,7 +28,7 @@ export interface IdeInspectionFile {
 }
 
 export interface IdeInspectionReport {
-  schema: 'pi-acp.ide-inspection.v1'
+  schema: 'pidea.ide-inspection.v1'
   sessionId: string
   generatedAt: string
   filesChecked: number

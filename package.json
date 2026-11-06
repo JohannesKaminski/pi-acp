@@ -1,21 +1,21 @@
 {
-  "name": "pi-acp",
+  "name": "pidea",
   "version": "0.0.40",
   "description": "ACP adapter for the pi coding agent (JetBrains IDEs primary host)",
   "license": "MIT",
   "author": "Johannes Kaminski <johannes.kaminski@protonmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JohannesKaminski/pi-acp.git"
+    "url": "git+https://github.com/JohannesKaminski/pidea.git"
   },
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
   "bugs": {
-    "url": "https://github.com/JohannesKaminski/pi-acp/issues"
+    "url": "https://github.com/JohannesKaminski/pidea/issues"
   },
-  "homepage": "https://github.com/JohannesKaminski/pi-acp#readme",
+  "homepage": "https://github.com/JohannesKaminski/pidea#readme",
   "keywords": [
     "pi-package",
     "acp",
@@ -38,7 +38,7 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "pi-acp": "dist/index.js"
+    "pidea": "dist/index.js"
   },
   "files": [
     "dist"

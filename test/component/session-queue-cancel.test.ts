@@ -1,13 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PiAcpSession } from '../../src/acp/session.js'
+import { PideaSession } from '../../src/acp/session.js'
 import { FakeAgentSideConnection, FakePiRpcProcess, asAgentConn } from '../helpers/fakes.js'
 
-test('PiAcpSession: cancel clears queued prompts', async () => {
+test('PideaSession: cancel clears queued prompts', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
 
-  const session = new PiAcpSession({
+  const session = new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -42,10 +42,10 @@ test('PiAcpSession: cancel clears queued prompts', async () => {
   assert.equal(proc.prompts.length, 1)
 })
 
-test('PiAcpSession: process exit settles the running prompt (P1-1 audit)', async () => {
+test('PideaSession: process exit settles the running prompt (P1-1 audit)', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
-  const session = new PiAcpSession({
+  const session = new PideaSession({
     sessionId: 's3',
     cwd: process.cwd(),
     mcpServers: [],
@@ -61,10 +61,10 @@ test('PiAcpSession: process exit settles the running prompt (P1-1 audit)', async
   assert.ok(String((session as any).lastError).includes('pi process exited'), 'lastError missing exit diagnostic')
 })
 
-test('PiAcpSession: dispose settles the running prompt as cancelled (P1-1 audit)', async () => {
+test('PideaSession: dispose settles the running prompt as cancelled (P1-1 audit)', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
-  const session = new PiAcpSession({
+  const session = new PideaSession({
     sessionId: 's4',
     cwd: process.cwd(),
     mcpServers: [],
@@ -78,7 +78,7 @@ test('PiAcpSession: dispose settles the running prompt as cancelled (P1-1 audit)
   assert.equal(await turn, 'cancelled')
 })
 
-test('PiAcpSession: cancel cancels the bridge before awaiting the pi abort (P1-2 audit)', async () => {
+test('PideaSession: cancel cancels the bridge before awaiting the pi abort (P1-2 audit)', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   const order: string[] = []
@@ -88,7 +88,7 @@ test('PiAcpSession: cancel cancels the bridge before awaiting the pi abort (P1-2
     order.push('proc')
   }
 
-  const session = new PiAcpSession({
+  const session = new PideaSession({
     sessionId: 's2',
     cwd: process.cwd(),
     mcpServers: [],

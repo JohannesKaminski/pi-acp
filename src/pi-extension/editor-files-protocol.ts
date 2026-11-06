@@ -5,9 +5,9 @@
 export type FileAccessMode = 'disk' | 'editor'
 
 /** Internal command the adapter sends (as an RPC prompt) to set the mode. */
-export const FILE_ACCESS_COMMAND = 'pi-acp-file-access'
+export const FILE_ACCESS_COMMAND = 'pidea-file-access'
 /** Prefix of the input-dialog title that marks an editor file request. */
-export const FILE_ACCESS_MARKER = '\u0000pi-acp-file-access:'
+export const FILE_ACCESS_MARKER = '\u0000pidea-file-access:'
 
 export type EditorFileRequest = { op: 'read'; path: string } | { op: 'write'; path: string; content: string }
 export type EditorFileResponse = { ok: true; content?: string } | { ok: false; error: string }

@@ -13,7 +13,7 @@ test('sessionStatsToAcpUsage: maps pi token stats to ACP Usage', () => {
     outputTokens: 50,
     cachedReadTokens: 25,
     cachedWriteTokens: 10,
-    _meta: { piAcp: { cost: 0.012 } }
+    _meta: { pidea: { cost: 0.012 } }
   })
 })
 

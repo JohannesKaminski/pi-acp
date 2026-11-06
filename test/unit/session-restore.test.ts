@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 import { PiRpcProcess } from '../../src/pi-rpc/process.js'
 import { FakeAgentSideConnection, asAgentConn } from '../helpers/fakes.js'
 import { sessionExtensionPaths } from '../../src/acp/session-extensions.js'
@@ -29,7 +29,7 @@ class FakeSessions {
   }
 }
 
-test('PiAcpAgent: prompt auto-restores a missing session from SessionStore', async () => {
+test('PideaAgent: prompt auto-restores a missing session from SessionStore', async () => {
   const conn = new FakeAgentSideConnection()
   const promptCalls: Array<{ message: string; images: unknown[] }> = []
   const spawnCalls: Array<Record<string, unknown>> = []
@@ -61,7 +61,7 @@ test('PiAcpAgent: prompt auto-restores a missing session from SessionStore', asy
   }
 
   try {
-    const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+    const agent = new PideaAgent(asAgentConn(conn), {} as any)
     ;(agent as any).sessions = sessions as any
     ;(agent as any).store = {
       get(sessionId: string) {
@@ -88,7 +88,7 @@ test('PiAcpAgent: prompt auto-restores a missing session from SessionStore', asy
       {
         cwd: '/tmp/store-project',
         sessionPath: '/tmp/store-project/session.jsonl',
-        piCommand: process.env.PI_ACP_PI_COMMAND,
+        piCommand: process.env.PIDEA_PI_COMMAND,
         // Every session's pi loads the tool approval extension.
         extensionPaths: sessionExtensionPaths(),
         env: {}
@@ -107,9 +107,9 @@ test('PiAcpAgent: prompt auto-restores a missing session from SessionStore', asy
   }
 })
 
-test('PiAcpAgent: setSessionConfigOption auto-restores via pi session discovery when SessionStore misses', async () => {
+test('PideaAgent: setSessionConfigOption auto-restores via pi session discovery when SessionStore misses', async () => {
   const conn = new FakeAgentSideConnection()
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp-restore-fallback-'))
+  const root = mkdtempSync(join(tmpdir(), 'pidea-restore-fallback-'))
   const sessionsDir = join(root, 'sessions', '--tmp--fallback-project--')
   const sessionFile = join(sessionsDir, '0000_restore_fallback.jsonl')
   const prevAgentDir = process.env.PI_CODING_AGENT_DIR
@@ -167,7 +167,7 @@ test('PiAcpAgent: setSessionConfigOption auto-restores via pi session discovery 
   }
 
   try {
-    const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+    const agent = new PideaAgent(asAgentConn(conn), {} as any)
     ;(agent as any).sessions = sessions as any
     ;(agent as any).store = {
       get() {
@@ -188,7 +188,7 @@ test('PiAcpAgent: setSessionConfigOption auto-restores via pi session discovery 
       {
         cwd: '/tmp/fallback-project',
         sessionPath: sessionFile,
-        piCommand: process.env.PI_ACP_PI_COMMAND,
+        piCommand: process.env.PIDEA_PI_COMMAND,
         // Every session's pi loads the tool approval extension.
         extensionPaths: sessionExtensionPaths(),
         env: {}
@@ -224,7 +224,7 @@ test('PiAcpAgent: setSessionConfigOption auto-restores via pi session discovery 
   }
 })
 
-test('PiAcpAgent: cancel ignores stale session IDs without spawning a restore process', async () => {
+test('PideaAgent: cancel ignores stale session IDs without spawning a restore process', async () => {
   const conn = new FakeAgentSideConnection()
   const spawnCalls: Array<Record<string, unknown>> = []
 
@@ -237,7 +237,7 @@ test('PiAcpAgent: cancel ignores stale session IDs without spawning a restore pr
   }
 
   try {
-    const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+    const agent = new PideaAgent(asAgentConn(conn), {} as any)
     ;(agent as any).sessions = new FakeSessions(() => {
       throw new Error('cancel should not restore a missing session')
     }) as any

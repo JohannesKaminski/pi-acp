@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import { SessionStore } from '../../src/acp/session-store.js'
 
 test('SessionStore round-trips with atomic writes and leaves no temp files (P2-7 audit)', () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pi-acp-store-'))
+  const dir = mkdtempSync(join(tmpdir(), 'pidea-store-'))
   const path = join(dir, 'session-map.json')
   const store = new SessionStore(path)
 
@@ -50,7 +50,7 @@ function runStoreWorker(path: string, worker: number, entries: number): Promise<
 }
 
 test('SessionStore preserves updates from concurrent adapter processes', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pi-acp-store-concurrent-'))
+  const dir = mkdtempSync(join(tmpdir(), 'pidea-store-concurrent-'))
   const path = join(dir, 'session-map.json')
   const workers = 8
   const entriesPerWorker = 40

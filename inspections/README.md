@@ -14,7 +14,7 @@ gate (`src/acp/ide-inspection.ts`) via the bridge `run_inspection_kts` tool.
   summary gains a `custom inspections degraded` note; a broken script never
   fails the turn.
 - The whole gate (including these scripts) is disabled by
-  `PI_ACP_ENFORCE_IDE_INSPECT=0`.
+  `PIDEA_ENFORCE_IDE_INSPECT=0`.
 
 ## Writing a rule
 

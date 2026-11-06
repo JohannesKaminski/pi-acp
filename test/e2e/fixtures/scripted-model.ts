@@ -1,6 +1,6 @@
 // pi extension loaded by the e2e harness. Registers pi-ai's faux provider as
 // `scripted/scripted` and answers each model request with the next entry from
-// the JSON script named by PI_ACP_E2E_SCRIPT. Also registers test-only tools that
+// the JSON script named by PIDEA_E2E_SCRIPT. Also registers test-only tools that
 // exercise pi's extension UI (e.g. `ask_user` → ctx.ui.input).
 import { appendFileSync, readFileSync } from 'node:fs'
 import {
@@ -35,8 +35,8 @@ function toBlock(block: ScriptedBlock): FauxContentBlock {
 }
 
 export default function (pi: ExtensionAPI) {
-  const path = process.env.PI_ACP_E2E_SCRIPT
-  if (!path) throw new Error('PI_ACP_E2E_SCRIPT is not set')
+  const path = process.env.PIDEA_E2E_SCRIPT
+  if (!path) throw new Error('PIDEA_E2E_SCRIPT is not set')
   const script = JSON.parse(readFileSync(path, 'utf8')) as ScriptedModelScript
 
   const faux = fauxProvider({
@@ -51,8 +51,8 @@ export default function (pi: ExtensionAPI) {
     ]
   })
 
-  // With PI_ACP_E2E_CAPTURE set, each model request's system prompt is appended there as a JSON line.
-  const capture = process.env.PI_ACP_E2E_CAPTURE
+  // With PIDEA_E2E_CAPTURE set, each model request's system prompt is appended there as a JSON line.
+  const capture = process.env.PIDEA_E2E_CAPTURE
   faux.setResponses(
     script.responses.map(r => (context: Context) => {
       if (capture) {

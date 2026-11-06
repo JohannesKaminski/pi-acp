@@ -111,7 +111,7 @@ export class E2EClient {
   }
 
   static start(opts: E2EOptions): E2EClient {
-    const root = mkdtempSync(join(tmpdir(), 'pi-acp-e2e-'))
+    const root = mkdtempSync(join(tmpdir(), 'pidea-e2e-'))
     const agentDir = join(root, 'agent')
     mkdirSync(agentDir)
     mkdirSync(join(root, 'workspace'))
@@ -137,9 +137,9 @@ export class E2EClient {
       env: {
         ...process.env,
         PI_CODING_AGENT_DIR: agentDir,
-        PI_ACP_SESSION_MAP: join(root, 'session-map.json'),
-        PI_ACP_PI_COMMAND: PI_BIN,
-        PI_ACP_E2E_SCRIPT: scriptPath,
+        PIDEA_SESSION_MAP: join(root, 'session-map.json'),
+        PIDEA_PI_COMMAND: PI_BIN,
+        PIDEA_E2E_SCRIPT: scriptPath,
         // The adapter's update notice runs `npm view`; fail it fast instead of hitting the network.
         npm_config_offline: 'true',
         ...opts.env

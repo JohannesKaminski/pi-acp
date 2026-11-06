@@ -217,13 +217,13 @@ function toToolCallLocations(args: unknown, cwd: string, line?: number): ToolCal
 }
 
 export class SessionManager {
-  private sessions = new Map<string, PiAcpSession>()
-  private readonly closing = new Map<string, { session: PiAcpSession; promise: Promise<void> }>()
+  private sessions = new Map<string, PideaSession>()
+  private readonly closing = new Map<string, { session: PideaSession; promise: Promise<void> }>()
   private readonly store = new SessionStore()
   /** The client's capabilities from `initialize`; omitted ones count as unsupported. */
   clientCapabilities: ClientCapabilities = {}
   /** Called when pi changes session config on its own (e.g. thinking level); the agent re-sends config options. */
-  onConfigChanged: ((session: PiAcpSession) => Promise<void> | void) | undefined
+  onConfigChanged: ((session: PideaSession) => Promise<void> | void) | undefined
 
   /** Dispose all sessions and their underlying pi subprocesses. */
   async disposeAll(): Promise<void> {
@@ -231,7 +231,7 @@ export class SessionManager {
   }
 
   /** Get a registered session if it exists (no throw). */
-  maybeGet(sessionId: string): PiAcpSession | undefined {
+  maybeGet(sessionId: string): PideaSession | undefined {
     return this.sessions.get(sessionId)
   }
 
@@ -285,7 +285,7 @@ export class SessionManager {
     throw new Error(`Unknown MCP connection: ${connectionId}`)
   }
 
-  async create(params: SessionCreateParams): Promise<PiAcpSession> {
+  async create(params: SessionCreateParams): Promise<PideaSession> {
     // Let pi manage session persistence in its default location (~/.pi/agent/sessions/...)
     // so sessions are visible to the regular `pi` CLI.
     let proc: PiRpcProcess
@@ -318,7 +318,7 @@ export class SessionManager {
       this.store.upsert({ sessionId, cwd: params.cwd, sessionFile })
     }
 
-    const session = new PiAcpSession({
+    const session = new PideaSession({
       sessionId,
       cwd: params.cwd,
       mcpServers: params.mcpServers,
@@ -335,7 +335,7 @@ export class SessionManager {
     return session
   }
 
-  get(sessionId: string): PiAcpSession {
+  get(sessionId: string): PideaSession {
     const s = this.sessions.get(sessionId)
     if (!s) throw RequestError.invalidParams(undefined, `Unknown sessionId: ${sessionId}`)
     return s
@@ -345,11 +345,11 @@ export class SessionManager {
    * Used by session/load: create a session object bound to an existing sessionId/proc
    * if it isn't already registered.
    */
-  getOrCreate(sessionId: string, params: SessionCreateParams & { proc: PiRpcProcess }): PiAcpSession {
+  getOrCreate(sessionId: string, params: SessionCreateParams & { proc: PiRpcProcess }): PideaSession {
     const existing = this.sessions.get(sessionId)
     if (existing) return existing
 
-    const session = new PiAcpSession({
+    const session = new PideaSession({
       sessionId,
       cwd: params.cwd,
       mcpServers: params.mcpServers,
@@ -367,7 +367,7 @@ export class SessionManager {
   }
 }
 
-export class PiAcpSession {
+export class PideaSession {
   readonly sessionId: string
   readonly cwd: string
   readonly mcpServers: McpServer[]
@@ -383,7 +383,7 @@ export class PiAcpSession {
   private readonly fileCommands: FileSlashCommand[]
   private readonly bridge: AcpMcpBridge | undefined
   private readonly clientCapabilities: ClientCapabilities
-  private readonly onConfigChanged: ((session: PiAcpSession) => Promise<void> | void) | undefined
+  private readonly onConfigChanged: ((session: PideaSession) => Promise<void> | void) | undefined
 
   // Used to map abort semantics to ACP stopReason.
   // Applies to the currently running turn.
@@ -448,7 +448,7 @@ export class PiAcpSession {
     fileCommands?: FileSlashCommand[]
     bridge?: AcpMcpBridge
     clientCapabilities?: ClientCapabilities
-    onConfigChanged?: (session: PiAcpSession) => Promise<void> | void
+    onConfigChanged?: (session: PideaSession) => Promise<void> | void
     autoTitle?: boolean
   }) {
     this.sessionId = opts.sessionId
@@ -485,7 +485,7 @@ export class PiAcpSession {
         this.emit({
           sessionUpdate: 'session_info_update',
           _meta: {
-            piAcp: {
+            pidea: {
               mcp: 'IDE bridge: tools/list_changed advertised; the catalog is a session snapshot — start a new chat to refresh (F-023)'
             }
           }
@@ -590,7 +590,7 @@ export class PiAcpSession {
         // This also not visible in the client
         this.emit({
           sessionUpdate: 'session_info_update',
-          _meta: { piAcp: { queueDepth: this.turnQueue.length, running: true } }
+          _meta: { pidea: { queueDepth: this.turnQueue.length, running: true } }
         })
 
         return
@@ -617,7 +617,7 @@ export class PiAcpSession {
       })
       this.emit({
         sessionUpdate: 'session_info_update',
-        _meta: { piAcp: { queueDepth: 0, running: Boolean(this.pendingTurn) } }
+        _meta: { pidea: { queueDepth: 0, running: Boolean(this.pendingTurn) } }
       })
     }
 
@@ -765,7 +765,7 @@ export class PiAcpSession {
     } else {
       this.emit({
         sessionUpdate: 'session_info_update',
-        _meta: { piAcp: { queueDepth: 0, running: false } }
+        _meta: { pidea: { queueDepth: 0, running: false } }
       })
     }
   }
@@ -860,7 +860,7 @@ export class PiAcpSession {
     // Publish queue depth (0 because we're starting the turn now).
     this.emit({
       sessionUpdate: 'session_info_update',
-      _meta: { piAcp: { queueDepth: this.turnQueue.length, running: true } }
+      _meta: { pidea: { queueDepth: this.turnQueue.length, running: true } }
     })
 
     // Kick off pi, but completion is determined by pi events, not the RPC response.
@@ -889,7 +889,7 @@ export class PiAcpSession {
         // But we still clear the queueDepth metadata.
         this.emit({
           sessionUpdate: 'session_info_update',
-          _meta: { piAcp: { queueDepth: this.turnQueue.length, running: false } }
+          _meta: { pidea: { queueDepth: this.turnQueue.length, running: false } }
         })
       })
       void err
@@ -1330,7 +1330,7 @@ export class PiAcpSession {
       this.emit({
         sessionUpdate: 'agent_message_chunk',
         content: { type: 'text', text: stringProp(ev, 'message') ?? 'Pi notification' } satisfies ContentBlock,
-        _meta: { piAcp: { notify: { level: stringProp(ev, 'notifyType') ?? 'info' } } }
+        _meta: { pidea: { notify: { level: stringProp(ev, 'notifyType') ?? 'info' } } }
       })
       await this.proc.sendExtensionUiResponse({ id, cancelled: true })
       return
@@ -1437,7 +1437,7 @@ export class PiAcpSession {
   }
 
   private async setExtensionSetting(
-    key: keyof PiAcpSession['extensionSettings'],
+    key: keyof PideaSession['extensionSettings'],
     mode: string,
     unavailable: string
   ): Promise<void> {

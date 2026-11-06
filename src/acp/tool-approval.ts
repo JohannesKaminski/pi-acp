@@ -18,9 +18,9 @@ const MODE_NAMES: Record<ToolApprovalMode, string> = {
   all: 'Ask for everything'
 }
 
-/** Default mode for new sessions: PI_ACP_TOOL_APPROVAL=off|edits|all (default off). */
+/** Default mode for new sessions: PIDEA_TOOL_APPROVAL=off|edits|all (default off). */
 export function defaultToolApprovalMode(): ToolApprovalMode {
-  return parseToolApprovalMode(process.env.PI_ACP_TOOL_APPROVAL) ?? 'off'
+  return parseToolApprovalMode(process.env.PIDEA_TOOL_APPROVAL) ?? 'off'
 }
 
 export function toolApprovalConfigOption(mode: ToolApprovalMode): SessionConfigOption {

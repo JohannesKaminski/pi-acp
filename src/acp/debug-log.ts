@@ -3,7 +3,7 @@ import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 
 // Opt-in ACP traffic log for diagnosing client behavior (which methods a client sends,
-// with which parameters). PI_ACP_DEBUG_ACP=1 logs to ~/.pi/pi-acp/acp-debug.log; any other
+// with which parameters). PIDEA_DEBUG_ACP=1 logs to ~/.pi/pidea/acp-debug.log; any other
 // value is used as the log file path. Logs every incoming message and outgoing error
 // responses. Prompt text, image data, env and headers are reduced to placeholders.
 
@@ -21,7 +21,7 @@ export type AcpDebugLog = {
 
 export function createAcpDebugLog(setting: string | undefined): AcpDebugLog | null {
   if (!setting) return null
-  const file = setting === '1' ? join(homedir(), '.pi', 'pi-acp', 'acp-debug.log') : setting
+  const file = setting === '1' ? join(homedir(), '.pi', 'pidea', 'acp-debug.log') : setting
   try {
     mkdirSync(dirname(file), { recursive: true })
   } catch {

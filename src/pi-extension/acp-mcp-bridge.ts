@@ -1,5 +1,5 @@
 /**
- * Bundled pi extension for the ACP MCP bridge (pi-acp).
+ * Bundled pi extension for the ACP MCP bridge (pidea).
  *
  * The extension receives an immutable, session-scoped catalog over authenticated
  * IPC, registers each remote tool independently, acknowledges registration, and
@@ -19,9 +19,9 @@ import {
   type CatalogRegistration
 } from '../acp/mcp-types.js'
 
-const ENDPOINT = process.env.PI_ACP_MCP_IPC_ENDPOINT
-const TOKEN = process.env.PI_ACP_MCP_IPC_TOKEN
-const SESSION_ID = process.env.PI_ACP_MCP_SESSION_ID
+const ENDPOINT = process.env.PIDEA_MCP_IPC_ENDPOINT
+const TOKEN = process.env.PIDEA_MCP_IPC_TOKEN
+const SESSION_ID = process.env.PIDEA_MCP_SESSION_ID
 type IpcMessage = BridgeIpcMessage
 
 type JsonSchema = Record<string, unknown>
@@ -407,7 +407,7 @@ export function mcpResultToPiResult(value: unknown): PiMcpToolResult {
   return { content, details }
 }
 
-const BRIDGE_INSTANCE_KEY = Symbol.for('pi-acp.acp-mcp-bridge.instance')
+const BRIDGE_INSTANCE_KEY = Symbol.for('pidea.acp-mcp-bridge.instance')
 
 export function claimBridgeInstance(scope: object, owner: symbol): boolean {
   const registry = scope as Record<PropertyKey, unknown>
@@ -1034,7 +1034,7 @@ function activateAcpMcpBridgeExtension(pi: ExtensionAPI, runtime: AcpMcpBridgeRu
 
 // ---------- IntelliJ-first coding mode ----------
 
-const IDE_MODE_ENV = 'PI_ACP_IDE_MODE'
+const IDE_MODE_ENV = 'PIDEA_IDE_MODE'
 const NATIVE_FILE_TOOLS = new Set(['read', 'edit', 'write', 'grep', 'find', 'ls'])
 
 const REQUIRED_CAPABILITIES: Array<{ key: IdeCapabilityKey; remoteNames: string[] }> = [
@@ -1109,7 +1109,7 @@ export function parseIdeCodingMode(value: string | undefined): { mode: IdeCoding
   if (value === undefined || value === '' || value === 'off') return { mode: 'off' }
   if (value === 'prefer') return { mode: 'prefer' }
   if (value === 'required') return { mode: 'required' }
-  return { mode: 'required', diagnostic: `invalid PI_ACP_IDE_MODE value '${value}'; failing closed as required` }
+  return { mode: 'required', diagnostic: `invalid PIDEA_IDE_MODE value '${value}'; failing closed as required` }
 }
 
 export function indexIdeCapabilities(
@@ -1486,7 +1486,7 @@ export function renderIdeCodingGuidance(
   if (mode === 'off' || state === 'disabled' || state === 'shutdown') return ''
   const name = (key: IdeCapabilityKey): string | undefined => capabilities.get(key)
   const parts: string[] = []
-  const header = `[pi-acp IntelliJ-first mode: ${state}]`
+  const header = `[pidea IntelliJ-first mode: ${state}]`
   switch (state) {
     case 'active': {
       parts.push('IntelliJ-first mode is active.')

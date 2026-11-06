@@ -4,7 +4,7 @@ import { join } from 'node:path'
 /**
  * Writes a Node script as a command the adapter can launch like pi: a `#!` script on Unix,
  * and on Windows a `.cmd` launcher calling Node (how npm installs pi there). `source` is
- * CommonJS. Returns the path to use as PI_ACP_PI_COMMAND.
+ * CommonJS. Returns the path to use as PIDEA_PI_COMMAND.
  */
 export function writeNodeExecutable(dir: string, name: string, source: string): string {
   if (process.platform === 'win32') {

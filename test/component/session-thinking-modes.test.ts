@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 
 class FakeConn {
   updates: any[] = []
@@ -9,9 +9,9 @@ class FakeConn {
   }
 }
 
-test('PiAcpAgent: legacy setSessionMode rejects unknown sessions', async () => {
+test('PideaAgent: legacy setSessionMode rejects unknown sessions', async () => {
   const conn = new FakeConn()
-  const agent = new PiAcpAgent(conn as any)
+  const agent = new PideaAgent(conn as any)
 
   // Create a fake session by calling newSession is heavyweight (spawns pi).
   // Instead, reach into session manager via loadSession isn't possible either.

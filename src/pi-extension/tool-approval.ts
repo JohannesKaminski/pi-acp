@@ -1,5 +1,5 @@
 /**
- * Bundled pi extension for ACP tool approval (pi-acp).
+ * Bundled pi extension for ACP tool approval (pidea).
  *
  * pi has no approval step of its own. The adapter loads this extension into every pi
  * process and sets its mode with an internal command; with approval off (the default)
@@ -15,9 +15,9 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent'
 export type ToolApprovalMode = 'off' | 'edits' | 'all'
 
 /** Internal command the adapter sends (as an RPC prompt) to set the mode. */
-export const TOOL_APPROVAL_COMMAND = 'pi-acp-tool-approval'
+export const TOOL_APPROVAL_COMMAND = 'pidea-tool-approval'
 /** Prefix of the select-dialog title that marks an approval request. */
-export const TOOL_APPROVAL_MARKER = '\u0000pi-acp-tool-approval:'
+export const TOOL_APPROVAL_MARKER = '\u0000pidea-tool-approval:'
 export const APPROVAL_ALLOW_ONCE = 'allow_once'
 export const APPROVAL_ALLOW_ALWAYS = 'allow_always'
 export const APPROVAL_REJECT = 'reject'
@@ -61,7 +61,7 @@ export default function toolApprovalExtension(pi: ExtensionAPI): void {
   const alwaysAllowed = new Set<string>()
 
   pi.registerCommand(TOOL_APPROVAL_COMMAND, {
-    description: 'pi-acp internal: set the tool approval mode (off | edits | all)',
+    description: 'pidea internal: set the tool approval mode (off | edits | all)',
     handler: async args => {
       mode = parseToolApprovalMode(args) ?? mode
     }

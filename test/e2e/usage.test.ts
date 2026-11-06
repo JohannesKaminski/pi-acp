@@ -16,7 +16,7 @@ test('e2e: usage_update after a turn carries context size and cumulative USD cos
     assert.ok((last?.used ?? 0) > 0, 'context tokens reported')
     // pi-ai's faux provider always reports zero cost; non-zero amounts are covered by unit tests.
     assert.equal(last?.cost?.currency, 'USD')
-    const responseCost = (res.usage?._meta as { piAcp?: { cost?: number } } | undefined)?.piAcp?.cost
+    const responseCost = (res.usage?._meta as { pidea?: { cost?: number } } | undefined)?.pidea?.cost
     assert.equal(typeof responseCost, 'number')
     assert.equal(last?.cost?.amount, responseCost)
   } finally {

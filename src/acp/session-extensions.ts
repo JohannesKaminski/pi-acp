@@ -31,5 +31,5 @@ export function sessionExtensionPaths(bridgePaths: string[] = []): string[] {
 export function sessionExtensionEnv(clientCapabilities: ClientCapabilities | undefined): Record<string, string> {
   const hints: string[] = []
   if (clientCapabilities?._meta?.['mermaid-rendering'] === true) hints.push('mermaid')
-  return hints.length > 0 ? { PI_ACP_CLIENT_HINTS: hints.join(',') } : {}
+  return hints.length > 0 ? { PIDEA_CLIENT_HINTS: hints.join(',') } : {}
 }

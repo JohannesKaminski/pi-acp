@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 import { FakeAgentSideConnection, asAgentConn } from '../helpers/fakes.js'
 import { PiRpcProcess } from '../../src/pi-rpc/process.js'
 
@@ -12,7 +12,7 @@ class FakeStore {
   upsert() {}
 }
 
-test('PiAcpAgent: loadSession replays toolResult as tool_call + tool_call_update', async () => {
+test('PideaAgent: loadSession replays toolResult as tool_call + tool_call_update', async () => {
   const originalSpawn = PiRpcProcess.spawn
   ;(PiRpcProcess as any).spawn = async () => {
     return {
@@ -37,7 +37,7 @@ test('PiAcpAgent: loadSession replays toolResult as tool_call + tool_call_update
 
   try {
     const conn = new FakeAgentSideConnection()
-    const agent = new PiAcpAgent(asAgentConn(conn))
+    const agent = new PideaAgent(asAgentConn(conn))
     ;(agent as any).store = new FakeStore()
 
     await agent.loadSession({ sessionId: 's1', cwd: '/tmp/project', mcpServers: [] } as any)

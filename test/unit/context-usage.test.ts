@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PiAcpAgent } from '../../src/acp/agent.js'
-import { PiAcpSession } from '../../src/acp/session.js'
+import { PideaAgent } from '../../src/acp/agent.js'
+import { PideaSession } from '../../src/acp/session.js'
 import { SESSION_STATS_TIMEOUT_MS } from '../../src/pi-rpc/process.js'
 import { FakeAgentSideConnection, FakePiRpcProcess, asAgentConn } from '../helpers/fakes.js'
 
@@ -30,8 +30,8 @@ async function drainScheduledWork(): Promise<void> {
   for (let i = 0; i < 5; i += 1) await new Promise(resolve => setTimeout(resolve, 0))
 }
 
-function makeSession(proc: FakePiRpcProcess, conn: FakeAgentSideConnection): PiAcpSession {
-  return new PiAcpSession({
+function makeSession(proc: FakePiRpcProcess, conn: FakeAgentSideConnection): PideaSession {
+  return new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -41,7 +41,7 @@ function makeSession(proc: FakePiRpcProcess, conn: FakeAgentSideConnection): PiA
   })
 }
 
-test('PiAcpSession: context usage request specifies the auxiliary timeout', async () => {
+test('PideaSession: context usage request specifies the auxiliary timeout', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   let requestedTimeout: number | undefined
@@ -58,14 +58,14 @@ test('PiAcpSession: context usage request specifies the auxiliary timeout', asyn
   ])
 })
 
-test('PiAcpAgent: newSession publishes context usage only after the response is returned', async () => {
+test('PideaAgent: newSession publishes context usage only after the response is returned', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   proc.sessionStats = { contextUsage: { tokens: 1_234, contextWindow: 100_000 } }
   proc.getState = async () => ({ thinkingLevel: 'medium' })
   const session = makeSession(proc, conn)
 
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
   ;(agent as any).sessions = new FakeSessions(session) as any
 
   const result = await agent.newSession({ cwd: process.cwd(), mcpServers: [] } as any)
@@ -83,14 +83,14 @@ test('PiAcpAgent: newSession publishes context usage only after the response is 
   )
 })
 
-test('PiAcpAgent: newSession tolerates a failing get_session_stats', async () => {
+test('PideaAgent: newSession tolerates a failing get_session_stats', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   proc.sessionStatsError = new Error('pi get_session_stats failed: unsupported')
   proc.getState = async () => ({ thinkingLevel: 'medium' })
   const session = makeSession(proc, conn)
 
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
   ;(agent as any).sessions = new FakeSessions(session) as any
 
   const result = await agent.newSession({ cwd: process.cwd(), mcpServers: [] } as any)
@@ -104,7 +104,7 @@ test('PiAcpAgent: newSession tolerates a failing get_session_stats', async () =>
   )
 })
 
-test('PiAcpAgent: switching the model config option refreshes context usage', async () => {
+test('PideaAgent: switching the model config option refreshes context usage', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   const state: { thinkingLevel: string; model: { provider: string; id: string } } = {
@@ -125,7 +125,7 @@ test('PiAcpAgent: switching the model config option refreshes context usage', as
   proc.sessionStats = { contextUsage: { tokens: 500, contextWindow: 100_000 } }
 
   const session = makeSession(proc, conn)
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
   ;(agent as any).sessions = new FakeSessions(session) as any
 
   await agent.setSessionConfigOption({ sessionId: 's1', configId: 'model', value: 'test/beta' } as any)
@@ -140,7 +140,7 @@ test('PiAcpAgent: switching the model config option refreshes context usage', as
   })
 })
 
-test('PiAcpAgent: unstable_setSessionModel refreshes context usage', async () => {
+test('PideaAgent: unstable_setSessionModel refreshes context usage', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   const state: { thinkingLevel: string; model: { provider: string; id: string } } = {
@@ -161,7 +161,7 @@ test('PiAcpAgent: unstable_setSessionModel refreshes context usage', async () =>
   proc.sessionStats = { contextUsage: { tokens: 700, contextWindow: 100_000 } }
 
   const session = makeSession(proc, conn)
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
   ;(agent as any).sessions = new FakeSessions(session) as any
 
   await agent.unstable_setSessionModel({ sessionId: 's1', modelId: 'test/beta' })
@@ -177,7 +177,7 @@ test('PiAcpAgent: unstable_setSessionModel refreshes context usage', async () =>
   })
 })
 
-test('PiAcpAgent: switching the thinking level does not publish context usage', async () => {
+test('PideaAgent: switching the thinking level does not publish context usage', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   const state: { thinkingLevel: string; model: { provider: string; id: string } } = {
@@ -191,7 +191,7 @@ test('PiAcpAgent: switching the thinking level does not publish context usage', 
   proc.sessionStats = { contextUsage: { tokens: 500, contextWindow: 100_000 } }
 
   const session = makeSession(proc, conn)
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
   ;(agent as any).sessions = new FakeSessions(session) as any
 
   await agent.setSessionConfigOption({ sessionId: 's1', configId: 'thought_level', value: 'high' } as any)
@@ -203,7 +203,7 @@ test('PiAcpAgent: switching the thinking level does not publish context usage', 
   )
 })
 
-test('PiAcpAgent: a settled turn fetches session stats once for usage_update and prompt usage', async () => {
+test('PideaAgent: a settled turn fetches session stats once for usage_update and prompt usage', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   proc.sessionStats = {
@@ -212,7 +212,7 @@ test('PiAcpAgent: a settled turn fetches session stats once for usage_update and
     contextUsage: { tokens: 300, contextWindow: 100_000 }
   }
   const session = makeSession(proc, conn)
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
 
   const p = session.prompt('hello')
   proc.emit({ type: 'agent_settled' })
@@ -221,19 +221,19 @@ test('PiAcpAgent: a settled turn fetches session stats once for usage_update and
   const usage = await (agent as any).collectTurnUsage(session)
 
   assert.equal(proc.getSessionStatsCount, 1)
-  assert.deepEqual(usage, { totalTokens: 15, inputTokens: 10, outputTokens: 5, _meta: { piAcp: { cost: 0.5 } } })
+  assert.deepEqual(usage, { totalTokens: 15, inputTokens: 10, outputTokens: 5, _meta: { pidea: { cost: 0.5 } } })
   assert.deepEqual(
     conn.updates.filter(u => u.update.sessionUpdate === 'usage_update').map(u => u.update),
     [{ sessionUpdate: 'usage_update', used: 300, size: 100_000, cost: { amount: 0.5, currency: 'USD' } }]
   )
 })
 
-test('PiAcpAgent: a turn that ends without settling fetches session stats for prompt usage', async () => {
+test('PideaAgent: a turn that ends without settling fetches session stats for prompt usage', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   proc.sessionStats = { tokens: { input: 1, output: 2, total: 3 } }
   const session = makeSession(proc, conn)
-  const agent = new PiAcpAgent(asAgentConn(conn), {} as any)
+  const agent = new PideaAgent(asAgentConn(conn), {} as any)
 
   const usage = await (agent as any).collectTurnUsage(session)
 
@@ -241,7 +241,7 @@ test('PiAcpAgent: a turn that ends without settling fetches session stats for pr
   assert.deepEqual(usage, { totalTokens: 3, inputTokens: 1, outputTokens: 2 })
 })
 
-test('PiAcpSession: usage_update includes cost only when pi reports a usable amount', async () => {
+test('PideaSession: usage_update includes cost only when pi reports a usable amount', async () => {
   const cases: Array<{ cost: unknown; expected: unknown }> = [
     { cost: 1.25, expected: { amount: 1.25, currency: 'USD' } },
     { cost: 0, expected: { amount: 0, currency: 'USD' } },

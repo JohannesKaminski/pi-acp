@@ -5,8 +5,8 @@ import { SmokeHarness, assert, matches } from './lib/acp-smoke.mjs'
 const h = new SmokeHarness().start()
 try {
   const init = await h.expectResult(1, 'initialize', { protocolVersion: 1 })
-  assert(init?.agentInfo?.name === 'pi-acp', `unexpected agent name: ${init?.agentInfo?.name}`)
-  const build = init?.agentInfo?._meta?.piAcp?.build
+  assert(init?.agentInfo?.name === 'pidea', `unexpected agent name: ${init?.agentInfo?.name}`)
+  const build = init?.agentInfo?._meta?.pidea?.build
   assert(
     build && typeof build.revision === 'string' && build.revision.length > 0,
     `missing build identity: ${JSON.stringify(build)}`
@@ -14,7 +14,7 @@ try {
 
   const created = await h.expectResult(2, 'session/new', { cwd: process.cwd(), mcpServers: [] })
   assert(typeof created?.sessionId === 'string' && created.sessionId.length > 0, 'missing sessionId')
-  const startupInfo = created?._meta?.piAcp?.startupInfo
+  const startupInfo = created?._meta?.pidea?.startupInfo
   assert(typeof startupInfo === 'string' && startupInfo.length > 0, 'missing startupInfo')
   matches(startupInfo, /## Context/, 'startupInfo Context section')
   matches(startupInfo, /## Skills/, 'startupInfo Skills section')

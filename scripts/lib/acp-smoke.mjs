@@ -28,7 +28,7 @@ const ISOLATE_TEMP_DIRS = ['sessions', 'cache', 'fabric']
  */
 function createIsolatedAgentEnv() {
   const real = resolve(process.env.HOME ?? '', '.pi', 'agent')
-  const base = mkdtempSync(join(tmpdir(), 'pi-acp-smoke-'))
+  const base = mkdtempSync(join(tmpdir(), 'pidea-smoke-'))
   try {
     for (const name of readdirSync(real)) {
       if (ISOLATE_TEMP_DIRS.includes(name)) continue
@@ -45,7 +45,7 @@ function createIsolatedAgentEnv() {
   return {
     env: {
       PI_CODING_AGENT_DIR: base,
-      PI_ACP_SESSION_MAP: join(base, 'pi-acp-session-map.json')
+      PIDEA_SESSION_MAP: join(base, 'pidea-session-map.json')
     },
     cleanup: () => {
       try {

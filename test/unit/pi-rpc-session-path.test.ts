@@ -25,15 +25,15 @@ function writeFakePi(root: string): string {
 }
 
 test('PiRpcProcess passes distinct session paths intact to the pi launcher', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'pi-acp launcher '))
+  const root = mkdtempSync(join(tmpdir(), 'pidea launcher '))
   const fixture = writeFakePi(root)
   const launchers = process.platform === 'win32' ? ['pi.cmd', 'pi.bat'] : ['pi']
-  const previousTestVar = process.env.PI_ACP_PATH_TEST
+  const previousTestVar = process.env.PIDEA_PATH_TEST
 
-  process.env.PI_ACP_PATH_TEST = 'expanded'
+  process.env.PIDEA_PATH_TEST = 'expanded'
 
   try {
-    const sessionDir = join(root, 'project & (a) ^ 100% !PI_ACP_PATH_TEST! %PI_ACP_PATH_TEST%')
+    const sessionDir = join(root, 'project & (a) ^ 100% !PIDEA_PATH_TEST! %PIDEA_PATH_TEST%')
     mkdirSync(sessionDir)
 
     for (const launcherName of launchers) {
@@ -58,8 +58,8 @@ test('PiRpcProcess passes distinct session paths intact to the pi launcher', asy
       assert.equal(existsSync(join(root, 'project')), false)
     }
   } finally {
-    if (previousTestVar === undefined) delete process.env.PI_ACP_PATH_TEST
-    else process.env.PI_ACP_PATH_TEST = previousTestVar
+    if (previousTestVar === undefined) delete process.env.PIDEA_PATH_TEST
+    else process.env.PIDEA_PATH_TEST = previousTestVar
     await new Promise(resolve => setTimeout(resolve, 50))
     rmSync(root, { recursive: true, force: true })
   }
@@ -69,7 +69,7 @@ test(
   'PiRpcProcess keeps a simulated Windows cmd session path intact',
   { skip: process.platform === 'win32' },
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'pi-acp-cmd-'))
+    const root = mkdtempSync(join(tmpdir(), 'pidea-cmd-'))
     writeFakePi(root)
     const launcher = join(root, 'pi.cmd')
     writeFileSync(launcher, "#!/usr/bin/env node\nrequire('./fake-pi.cjs')\n")

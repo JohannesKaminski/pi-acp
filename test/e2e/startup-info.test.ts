@@ -10,7 +10,7 @@ async function startupInfo(quietStartup: unknown): Promise<string> {
     // A context file gives the full block a section to list.
     writeFileSync(join(c.workspace, 'AGENTS.md'), '# Agents\n')
     const res = await c.newSession()
-    return String((res._meta as { piAcp?: { startupInfo?: unknown } } | undefined)?.piAcp?.startupInfo ?? '')
+    return String((res._meta as { pidea?: { startupInfo?: unknown } } | undefined)?.pidea?.startupInfo ?? '')
   } finally {
     await c.close()
   }
@@ -23,7 +23,7 @@ test('e2e: the startup block follows pi quietStartup, including pi 1.0\'s "heade
 
   // pi 1.0: "header" keeps the version header and hides the resource listing.
   const header = await startupInfo('header')
-  assert.match(header, /pi-acp .*\(build /)
+  assert.match(header, /pidea .*\(build /)
   assert.match(header, /pi v\d+\.\d+\.\d+/)
   assert.doesNotMatch(header, /## (Extensions|Skills|Prompts|Context)/)
 

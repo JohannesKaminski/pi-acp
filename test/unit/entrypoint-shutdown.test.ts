@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import { spawn } from 'node:child_process'
 
 test('ACP entrypoint: closing stdin waits for the owned pi subprocess to terminate', async () => {
-  const dir = mkdtempSync(join(tmpdir(), 'pi-acp-shutdown-'))
+  const dir = mkdtempSync(join(tmpdir(), 'pidea-shutdown-'))
   const signalFile = join(dir, 'signal.txt')
   const pidFile = join(dir, 'pid.txt')
   const executable = writeNodeExecutable(
@@ -15,8 +15,8 @@ test('ACP entrypoint: closing stdin waits for the owned pi subprocess to termina
     'fake-pi',
     `const fs = require('node:fs')
 const readline = require('node:readline')
-const signalFile = process.env.PI_ACP_TEST_SIGNAL_FILE
-fs.writeFileSync(process.env.PI_ACP_TEST_PID_FILE, String(process.pid))
+const signalFile = process.env.PIDEA_TEST_SIGNAL_FILE
+fs.writeFileSync(process.env.PIDEA_TEST_PID_FILE, String(process.pid))
 process.on('SIGTERM', () => {
   fs.writeFileSync(signalFile, 'SIGTERM')
   process.exit(0)
@@ -36,9 +36,9 @@ readline.createInterface({ input: process.stdin }).on('line', line => {
     stdio: ['pipe', 'pipe', 'pipe'],
     env: {
       ...process.env,
-      PI_ACP_PI_COMMAND: executable,
-      PI_ACP_TEST_SIGNAL_FILE: signalFile,
-      PI_ACP_TEST_PID_FILE: pidFile
+      PIDEA_PI_COMMAND: executable,
+      PIDEA_TEST_SIGNAL_FILE: signalFile,
+      PIDEA_TEST_PID_FILE: pidFile
     }
   })
 

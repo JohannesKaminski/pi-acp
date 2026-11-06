@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PiAcpSession } from '../../src/acp/session.js'
+import { PideaSession } from '../../src/acp/session.js'
 import {
   FILE_ACCESS_COMMAND,
   decodeFileRequest,
@@ -14,7 +14,7 @@ const flush = () => new Promise(resolve => setTimeout(resolve, 0))
 
 function makeSession(proc: FakePiRpcProcess, conn: FakeAgentSideConnection, clientCapabilities: object = FS) {
   ;(proc as any).getCommands = async () => ({ commands: [{ name: FILE_ACCESS_COMMAND, source: 'extension' }] })
-  return new PiAcpSession({
+  return new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -35,7 +35,7 @@ test('file access: request titles round-trip; malformed ones are ignored', () =>
   assert.equal(parseFileAccessMode('cloud'), undefined)
 })
 
-test('PiAcpSession: file access needs both fs capabilities from the client', async () => {
+test('PideaSession: file access needs both fs capabilities from the client', async () => {
   const readOnly = makeSession(new FakePiRpcProcess(), new FakeAgentSideConnection(), {
     fs: { readTextFile: true, writeTextFile: false }
   })
@@ -45,7 +45,7 @@ test('PiAcpSession: file access needs both fs capabilities from the client', asy
   assert.equal((await full.fileAccessOption())?.currentValue, 'editor', 'editor is the default with fs support')
 })
 
-test('PiAcpSession: a failing editor read is reported back to pi as an error, not as empty text', async () => {
+test('PideaSession: a failing editor read is reported back to pi as an error, not as empty text', async () => {
   const proc = new FakePiRpcProcess()
   const conn = new FakeAgentSideConnection()
   ;(conn as any).readTextFile = async () => {

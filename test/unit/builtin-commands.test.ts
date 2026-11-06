@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PiAcpAgent } from '../../src/acp/agent.js'
+import { PideaAgent } from '../../src/acp/agent.js'
 import { FakeAgentSideConnection, FakePiRpcProcess, asAgentConn } from '../helpers/fakes.js'
 
 // noinspection JSUnusedGlobalSymbols
@@ -16,12 +16,12 @@ class FakeSessions {
   }
 }
 
-test('PiAcpAgent: /steering is handled adapter-side', async () => {
+test('PideaAgent: /steering is handled adapter-side', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess() as any
   proc.getState = async () => ({ steeringMode: 'one-at-a-time' })
 
-  const agent = new PiAcpAgent(asAgentConn(conn))
+  const agent = new PideaAgent(asAgentConn(conn))
   ;(agent as any).sessions = new FakeSessions({ sessionId: 's1', proc, fileCommands: [] }) as any
 
   const res = await agent.prompt({
@@ -35,7 +35,7 @@ test('PiAcpAgent: /steering is handled adapter-side', async () => {
   assert.match((last as any).update.content.text, /Steering mode: one-at-a-time/)
 })
 
-test('PiAcpAgent: /name sets session display name adapter-side', async () => {
+test('PideaAgent: /name sets session display name adapter-side', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess() as any
 
@@ -44,7 +44,7 @@ test('PiAcpAgent: /name sets session display name adapter-side', async () => {
     setTo = name
   }
 
-  const agent = new PiAcpAgent(asAgentConn(conn))
+  const agent = new PideaAgent(asAgentConn(conn))
   ;(agent as any).sessions = new FakeSessions({
     sessionId: 's1',
     proc,

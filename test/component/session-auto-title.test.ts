@@ -1,14 +1,14 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PiAcpSession } from '../../src/acp/session.js'
+import { PideaSession } from '../../src/acp/session.js'
 import { FakeAgentSideConnection, FakePiRpcProcess, asAgentConn, type FakePiEvent } from '../helpers/fakes.js'
 
 function createSession(
   conn: FakeAgentSideConnection,
   proc: FakePiRpcProcess,
   options: { autoTitle?: boolean } = { autoTitle: true }
-): PiAcpSession {
-  return new PiAcpSession({
+): PideaSession {
+  return new PideaSession({
     sessionId: 's1',
     cwd: process.cwd(),
     mcpServers: [],
@@ -27,7 +27,7 @@ async function settlePrompt(proc: FakePiRpcProcess, prompt: Promise<string>): Pr
   return prompt
 }
 
-test('PiAcpSession: names a new session when its first prompt starts', async () => {
+test('PideaSession: names a new session when its first prompt starts', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess() as any
   const assignedNames: string[] = []
@@ -53,7 +53,7 @@ test('PiAcpSession: names a new session when its first prompt starts', async () 
   assert.deepEqual(assignedNames, ['Fix thread titles'])
 })
 
-test('PiAcpSession: preserves an existing session name', async () => {
+test('PideaSession: preserves an existing session name', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess() as any
   let setNameCalls = 0
@@ -71,7 +71,7 @@ test('PiAcpSession: preserves an existing session name', async () => {
   assert.equal((titleUpdates.at(-1)!.update as any).title, 'Manual title')
 })
 
-test('PiAcpSession: does not overwrite a manual name assigned during the first prompt', async () => {
+test('PideaSession: does not overwrite a manual name assigned during the first prompt', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess() as any
   const assignedNames: string[] = []
@@ -91,7 +91,7 @@ test('PiAcpSession: does not overwrite a manual name assigned during the first p
   assert.equal((titleUpdates.at(-1)!.update as any).title, 'Manual title')
 })
 
-test('PiAcpSession: auto-title failures do not fail the prompt', async () => {
+test('PideaSession: auto-title failures do not fail the prompt', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess() as any
   proc.getState = async () => ({})
@@ -107,7 +107,7 @@ test('PiAcpSession: auto-title failures do not fail the prompt', async () => {
   assert.equal(titleUpdates.length, 0)
 })
 
-test('PiAcpSession: forwards Pi session name changes to ACP', async () => {
+test('PideaSession: forwards Pi session name changes to ACP', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   createSession(conn, proc, { autoTitle: false })
@@ -119,7 +119,7 @@ test('PiAcpSession: forwards Pi session name changes to ACP', async () => {
   assert.equal((titleUpdate!.update as any).title, 'Extension title')
 })
 
-test('PiAcpSession: ignores duplicate and malformed names but forwards a cleared name', async () => {
+test('PideaSession: ignores duplicate and malformed names but forwards a cleared name', async () => {
   const conn = new FakeAgentSideConnection()
   const proc = new FakePiRpcProcess()
   createSession(conn, proc, { autoTitle: false })
