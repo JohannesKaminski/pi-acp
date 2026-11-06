@@ -1,6 +1,14 @@
 // Smoke: session/new startup prelude and loaded build identity.
 // No model call: the prelude is generated from local context on session/new.
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { SmokeHarness, assert, matches } from './lib/acp-smoke.mjs'
+
+// Own project with an AGENTS.md, so the Context section shows on any checkout.
+const project = mkdtempSync(join(tmpdir(), 'pidea-smoke-project-'))
+writeFileSync(join(project, 'AGENTS.md'), '# Smoke project\n')
+process.on('exit', () => rmSync(project, { recursive: true, force: true }))
 
 const h = new SmokeHarness().start()
 try {
@@ -12,7 +20,7 @@ try {
     `missing build identity: ${JSON.stringify(build)}`
   )
 
-  const created = await h.expectResult(2, 'session/new', { cwd: process.cwd(), mcpServers: [] })
+  const created = await h.expectResult(2, 'session/new', { cwd: project, mcpServers: [] })
   assert(typeof created?.sessionId === 'string' && created.sessionId.length > 0, 'missing sessionId')
   const startupInfo = created?._meta?.pidea?.startupInfo
   assert(typeof startupInfo === 'string' && startupInfo.length > 0, 'missing startupInfo')
