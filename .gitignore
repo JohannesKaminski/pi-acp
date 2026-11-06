@@ -10,9 +10,8 @@ dist
 /agentDocs
 .DS_Store
 
-# Pi/Fabric harness session state — all local agent state stays out of Git
+# pi and pidea project state (pidea writes inspection reports to .pi/work/)
 .pi/
-.veda/
 
 # IntelliJ user-local workspace state
 .idea/

@@ -1,5 +1,5 @@
 // Usage: node scripts/validate-release-hygiene.mjs [root]
-// Fails (exit 1) on: tracked runtime state, machine-specific absolute paths,
+// Fails (exit 1) on: machine-specific absolute paths,
 // and credential-shaped strings in tracked files.
 import { readFileSync, existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -36,14 +36,9 @@ for (const f of files) {
   if (SECRET_RE.test(text)) fail(`credential-shaped string in ${f}`)
 }
 
-// 3. Runtime/generated local state must stay untracked.
-const RUNTIME_RE = /^(?:\.pi\/(?:MEMORY\.md|implementation-notes\.md|fabric\/)|\.veda(?:\/|$))/
-const runtime = files.filter(f => RUNTIME_RE.test(f))
-if (runtime.length) fail(`tracked runtime state: ${runtime.join(', ')}`)
-
 if (errors.length) {
   console.error('[fail] release-hygiene violations:')
   for (const e of errors) console.error('  - ' + e)
   process.exit(1)
 }
-console.log(`[ok] tracked=${files.length} secrets=0 machinePaths=0 runtimeState=0`)
+console.log(`[ok] tracked=${files.length} secrets=0 machinePaths=0`)

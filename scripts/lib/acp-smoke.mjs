@@ -19,11 +19,11 @@ const GRACE_MS = 5_000
 
 // Entries of the real ~/.pi/agent that stay writable/temp in the overlay so the
 // smoke matrix never writes session or cache data into the user's store.
-const ISOLATE_TEMP_DIRS = ['sessions', 'cache', 'fabric']
+const ISOLATE_TEMP_DIRS = ['sessions', 'cache']
 
 /**
  * Builds an isolated agent dir overlay (F-027): symlink the real pi config so
- * provider auth/models keep working, keep sessions/cache/fabric in a temp dir,
+ * provider auth/models keep working, keep sessions/cache in a temp dir,
  * and point the adapter session map at the same temp dir.
  */
 function createIsolatedAgentEnv() {
