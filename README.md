@@ -197,8 +197,6 @@ Text input requests from pi extensions use ACP elicitation when the client decla
 
 Slash commands load file-based prompts from pi and a set of built-ins: `/compact`, `/export`, `/session`, `/name`, `/queue`, `/changelog`, `/steering`, `/follow-up`. Skills appear as `/skill:<name>` when enabled in pi settings. `/compact` on a session too small to compact answers in the chat.
 
-The local tree carries pi developer tooling: 9 prompt commands, 101 skill files (91 leaves in 10 packs), and 12 format templates under `.pi/`. These checks run in the development tree and skip on clean CI checkouts.
-
 ## JetBrains IDE bridge
 
 IntelliJ sends its built-in MCP server descriptor with each chat (with `use_idea_mcp` enabled). The adapter exposes those IDE tools to pi as `ide_<server>_<tool>` extension tools.
@@ -242,7 +240,7 @@ Bash stays available in `prefer` for Git, tests, builds, and diagnostics. Unrest
 
 In `prefer` and `required` with an active catalog, direct Fabric/Schema file mutations (`schema.commit`, `pi.write`, `pi.edit` inside `fabric_exec`) are blocked before execution by a `tool_call` gate. Mutations must flow through the IDE tools (`ide_idea_apply_patch`, `ide_idea_create_new_file`, rename, reformat), which open affected files and confine patch/path arguments to the project root. Read-only Fabric code (`pi.read`, `pi.grep`, IDE tool calls) is unaffected. This closes the extension-tool bypass of the active-set filter; Bash remains an intentional, documented exception.
 
-A second layer runs after each turn: the extension reports paths applied by successful IDE mutation tools over the authenticated IPC (`mutations_applied`), and the adapter compares those against files changed during the turn (git status merged with turn-touched tool paths). Files that changed without an IDE mutation event are surfaced as `Mutation provenance` violations in the chat and recorded under `PromptResponse._meta.piAcp.mutationViolations`. Disable with `PI_ACP_ENFORCE_IDE_MUTATIONS=0`. Deleted files and files committed mid-turn by an external auto-commit watcher are not detected by this layer (same git-status semantics as the inspection gate).
+A second layer runs after each turn: the extension reports paths applied by successful IDE mutation tools over the authenticated IPC (`mutations_applied`), and the adapter compares those against files changed during the turn (git status merged with turn-touched tool paths). Files that changed without an IDE mutation event are surfaced as `Mutation provenance` violations in the chat and recorded under `PromptResponse._meta.piAcp.mutationViolations`. Disable with `PI_ACP_ENFORCE_IDE_MUTATIONS=0`. Deleted files and files committed mid-turn by an external commit are not detected by this layer (same git-status semantics as the inspection gate).
 
 The File access setting is the protocol-standard way to route pi's read, edit, and write through the editor in any ACP client; this mode goes further and replaces pi's native tools with IntelliJ's MCP tools.
 

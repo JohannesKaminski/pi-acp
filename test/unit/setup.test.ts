@@ -4,7 +4,7 @@ import { buildEntry, isEphemeralInstall, mergeConfig } from '../../src/setup.js'
 
 const base = {
   nodePath: '/opt/node/bin/node',
-  scriptPath: '/home/u/lib/node_modules/pi-acp/dist/index.js',
+  scriptPath: '/opt/u/lib/node_modules/pi-acp/dist/index.js',
   piPath: '/opt/pi/bin/pi',
   basePath: '/usr/bin:/opt/node/bin',
   platform: 'linux' as const
@@ -36,7 +36,7 @@ test('mergeConfig keeps other agents, user keys, and the allow-list', () => {
 })
 
 test('isEphemeralInstall detects the npx cache', () => {
-  assert.ok(isEphemeralInstall('/home/u/.npm/_npx/abc/node_modules/pi-acp/dist/index.js'))
+  assert.ok(isEphemeralInstall('/opt/u/.npm/_npx/abc/node_modules/pi-acp/dist/index.js'))
   assert.ok(!isEphemeralInstall(base.scriptPath))
 })
 

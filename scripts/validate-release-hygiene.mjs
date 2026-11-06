@@ -1,8 +1,7 @@
 // Usage: node scripts/validate-release-hygiene.mjs [root]
 // Fails (exit 1) on: tracked runtime state, machine-specific absolute paths,
-// credential-shaped strings in tracked files, and drift between documented
-// counts (prompts, skills, templates) and the actual tree.
-import { readFileSync, readdirSync, existsSync } from 'node:fs'
+// and credential-shaped strings in tracked files.
+import { readFileSync, existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 
@@ -42,39 +41,9 @@ const RUNTIME_RE = /^(?:\.pi\/(?:MEMORY\.md|implementation-notes\.md|fabric\/)|\
 const runtime = files.filter(f => RUNTIME_RE.test(f))
 if (runtime.length) fail(`tracked runtime state: ${runtime.join(', ')}`)
 
-// 4. Documented counts must match the tree (README is the release surface).
-// Key on the tooling, not on `.pi` (the adapter's IDE inspections create `.pi/work`).
-if (!existsSync(join(root, '.pi', 'prompts'))) {
-  console.log('[skip] README count checks; .pi/prompts is not in this checkout')
-  process.exit(0)
-}
-const prompts = readdirSync(join(root, '.pi', 'prompts')).filter(n => n.endsWith('.md')).length
-const templates = readdirSync(join(root, '.pi', 'templates')).filter(n => n.endsWith('.md')).length
-const catalog = JSON.parse(readFileSync(join(root, '.pi', 'skills', 'packs.json'), 'utf8'))
-const leaves = catalog.packs.reduce((n, p) => n + (p.members || []).length, 0) + (catalog.visibleCore || []).length
-const skillFiles = leaves + catalog.packs.length
-const readme = readFileSync(join(root, 'README.md'), 'utf8')
-const check = (re, expected, label) => {
-  const m = readme.match(re)
-  if (!m || Number(m[1]) !== expected) {
-    fail(`README ${label} mismatch (README: ${m ? m[1] : 'absent'}; tree: ${expected}); fix README or the tree`)
-  }
-}
-check(/(\d+) prompt commands/, prompts, 'prompt commands')
-check(/(\d+) skill files/, skillFiles, 'skill files')
-check(/(\d+) format templates/, templates, 'format templates')
-const lp = readme.match(/(\d+) leaves in (\d+) packs/)
-if (!lp || Number(lp[1]) !== leaves || Number(lp[2]) !== catalog.packs.length) {
-  fail(
-    `README "leaves in packs" mismatch (README: ${lp ? lp[1] + ' in ' + lp[2] : 'absent'}; tree: ${leaves} leaves in ${catalog.packs.length} packs)`
-  )
-}
-
 if (errors.length) {
   console.error('[fail] release-hygiene violations:')
   for (const e of errors) console.error('  - ' + e)
   process.exit(1)
 }
-console.log(
-  `[ok] tracked=${files.length} prompts=${prompts} skills=${skillFiles} (leaves=${leaves}, packs=${catalog.packs.length}) templates=${templates} secrets=0 machinePaths=0 runtimeState=0`
-)
+console.log(`[ok] tracked=${files.length} secrets=0 machinePaths=0 runtimeState=0`)

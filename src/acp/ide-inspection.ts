@@ -76,7 +76,7 @@ export interface RunEnforcedInspectionOptions {
   maxFiles?: number
   maxKtsCalls?: number
   timeoutMs?: number
-  /** Files touched by this turn's tool calls; merged with git status so the gate still fires after an auto-commit sweep. */
+  /** Files touched by this turn's tool calls; merged with git status so the gate still fires after an external commit. */
   extraFiles?: string[]
 }
 
@@ -121,7 +121,7 @@ function normalizeInspectPath(cwd: string, raw: string): string | null {
 
 /**
  * Merge git-status files with turn-touched tool-call paths so the gate still
- * inspects a turn's edits after the auto-commit watcher swept the tree.
+ * inspects a turn's edits after an external commit cleaned the tree.
  * Normalizes ./ and absolute paths to repo-relative form, rejects traversal
  * and out-of-repo paths, dedupes, applies the same exclusion prefixes as
  * collectChangedFiles, and drops paths that no longer exist. Turn-touched
