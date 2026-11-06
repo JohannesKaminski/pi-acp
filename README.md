@@ -21,14 +21,20 @@ You need Node.js 22.19 or newer and pi 1.0.0 or newer with a working model (run 
 
 The adapter loads its bundled pi extensions (IDE bridge, tool approval, file access) into every pi session it starts, so installing the adapter is enough. `pi install` is not needed.
 
-### Quick start (from GitHub)
+### Quick start (from a GitHub release)
+
+Pick a version from the [releases page](https://github.com/JohannesKaminski/pidea/releases) and install its tarball:
 
 ```bash
-npm install -g --allow-git=all github:JohannesKaminski/pidea#<tag-or-commit>
+npm install -g https://github.com/JohannesKaminski/pidea/releases/download/v0.1.0/pidea-0.1.0.tgz
 pidea setup    # optional, JetBrains IDEs only
 ```
 
-npm clones the ref, installs the build tools, and builds `dist/` through the `prepare` script. npm 12 refuses git installs unless you opt in with `--allow-git=all`; older npm versions ignore the flag. Pin a tag or commit hash: a branch name can keep an older build in npm's cache.
+The tarball is prebuilt: the install needs no git, no build tools, and runs no install scripts. To update, install a newer release the same way and restart the IDE.
+
+If `npm install -g` fails with `EACCES` or asks for sudo, your Node.js was installed system-wide. Don't use sudo; either install Node.js with a version manager such as nvm (recommended), or point npm's global prefix at your home folder (not on Windows): `npm config set prefix ~/.local` and add `~/.local/bin` to your `PATH`. See npm's guide on [resolving EACCES permissions errors](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally).
+
+Installing straight from the git repository (`npm install -g github:…`) does not work: npm runs the build of a global git install without the build tools.
 
 `pidea setup` is optional and only matters for JetBrains IDEs; other ACP clients just need `pidea` as the agent command. It writes the agent entry into `~/.jetbrains/acp.json` for you: the absolute path of the `node` that ran it, the adapter's `dist/index.js`, the path of `pi`, and an explicit `PATH`. Other agents and your own settings in that file (for example `idea_mcp_allowed_tools`) are kept, and the original file is saved once as `acp.json.bak`. Restart the IDE and pick `pidea` in the AI Chat.
 
@@ -42,7 +48,7 @@ Pack the adapter on a machine with the repository:
 
 ```bash
 npm install
-npm pack        # writes pidea-<version>.tgz
+npm pack        # builds dist/ and writes pidea-<version>.tgz
 ```
 
 Copy the tarball to the other machine and run:
@@ -59,7 +65,8 @@ The package version does not change between local builds. The startup block and 
 ### From source
 
 ```bash
-npm install     # also builds dist/
+npm install
+npm run build
 node dist/index.js setup
 ```
 
@@ -223,6 +230,7 @@ The session catalog never changes. After you edit IntelliJ MCP settings or the a
 | `PIDEA_IDE_INSPECT_DIR`                | Move inspection reports out of the project tree.                                                                                                    |
 | `PIDEA_SESSION_MAP`                    | Override the session map path. Default: `~/.pi/pidea/session-map.json`.                                                                             |
 | `PIDEA_IDE_EXTRA_TOOLS`                | Re-allow deny-listed IDE tools. Comma separated remote names.                                                                                       |
+| `PIDEA_UPDATE_CHECK=0`                 | Disable update checks (the "New version available" notice for pi).                                                                                  |
 
 ## IntelliJ-first coding mode
 
@@ -270,7 +278,7 @@ ACP clients can start the same command from their auth UI.
 ## Development
 
 ```bash
-npm install          # also builds dist/
+npm install
 npm run dev          # run from src with tsx
 npm run build
 npm run lint
@@ -297,7 +305,13 @@ Tests:
 
 To see what a client actually sends, set `PIDEA_DEBUG_ACP=1` and read `~/.pi/pidea/acp-debug.log`.
 
-CI: `check.yml` runs the canonical check, tests, lint, typecheck, build, and the packaging check on Linux (Node 22 and 24) and Windows (Node 24).
+CI: `check.yml` runs the canonical check, tests, lint, typecheck, build, and the packaging check on Linux (Node 22 and 24) and Windows (Node 24). `release.yml` runs on `v*` tags: the end-to-end tests against pi 1.0.0 and the latest pi, the same checks, a tag-matches-version check, and then it publishes a GitHub Release with the `npm pack` tarball.
+
+Releasing:
+
+1. Set `version` in `package.json`, run `npm install --package-lock-only`, and update the version in the Quick start install command.
+2. Run `npm run smoke:full` locally (it needs your pi providers, which CI does not have).
+3. Commit, then tag and push: `git tag v<version>` and `git push origin main v<version>`.
 
 ## Limitations
 

@@ -140,7 +140,9 @@ export class E2EClient {
         PIDEA_SESSION_MAP: join(root, 'session-map.json'),
         PIDEA_PI_COMMAND: PI_BIN,
         PIDEA_E2E_SCRIPT: scriptPath,
-        // The adapter's update notice runs `npm view`; fail it fast instead of hitting the network.
+        // No update checks: offline npm still answers `npm view` from its cache, so an older pi
+        // (the release workflow tests pi 1.0.0) would otherwise get a "New version available" notice.
+        PIDEA_UPDATE_CHECK: '0',
         npm_config_offline: 'true',
         ...opts.env
       }

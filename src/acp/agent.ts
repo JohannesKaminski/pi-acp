@@ -2004,6 +2004,7 @@ function compareSemver(a: string, b: string): number {
 function buildUpdateNotice(): string | null {
   // Best-effort update check against npm registry.
   // Important: keep it fast to not slow down session/new.
+  if (process.env.PIDEA_UPDATE_CHECK === '0') return null
   try {
     const piVersion = crossSpawn.sync(getPiCommand(process.env.PIDEA_PI_COMMAND), ['--version'], { encoding: 'utf-8' })
     const installed = (String(piVersion.stdout ?? '').trim() || String(piVersion.stderr ?? '').trim()).replace(

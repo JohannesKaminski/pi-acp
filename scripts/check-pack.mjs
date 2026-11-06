@@ -24,7 +24,7 @@ function fail(message) {
 }
 
 try {
-  // Pack (which builds via prepare) and find the tarball on disk. npm's stdout differs between
+  // Pack (which builds via prepack) and find the tarball on disk. npm's stdout differs between
   // versions (npm 10 interleaves the build log even with --json), so it isn't parsed.
   run('npm', ['pack', '--pack-destination', work], root)
   const tarballName = readdirSync(work).find(name => name.endsWith('.tgz'))
